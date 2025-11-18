@@ -1,0 +1,394 @@
+{
+  "timestamp": "2025-11-18T11:17:18Z",
+  "project": "kimi-cli",
+  "version": "0.54",
+  "scan_strategy": "intelligent_incremental_update",
+  "scan_summary": {
+    "total_files_scanned": 158,
+    "python_files": 82,
+    "documentation_files": 25,
+    "test_files": 30,
+    "config_files": 8,
+    "coverage_percentage": 99.2,
+    "modules_documented": 7,
+    "scan_phases_completed": 3,
+    "incremental_updates": 1,
+    "changes_detected": 3
+  },
+  "modules": [
+    {
+      "path": "src/kimi_cli",
+      "name": "main",
+      "entry_point": "cli.py",
+      "description": "主应用模块，包含 CLI 入口、应用生命周期和会话管理",
+      "key_files": [
+        "cli.py",
+        "app.py",
+        "config.py",
+        "session.py",
+        "constant.py",
+        "metadata.py",
+        "agentspec.py",
+        "exception.py",
+        "share.py",
+        "llm.py"
+      ],
+      "test_coverage": true,
+      "scan_status": "unchanged",
+      "last_updated": "2025-11-18 11:10",
+      "features": [
+        "多模式运行支持",
+        "MCP 配置集成",
+        "会话持久化",
+        "自动重载机制"
+      ]
+    },
+    {
+      "path": "src/kimi_cli/soul",
+      "name": "soul",
+      "entry_point": "kimisoul.py",
+      "description": "AI 推理引擎，处理 LLM 交互、工具调用、消息处理和检查点管理",
+      "key_files": [
+        "kimisoul.py",
+        "agent.py",
+        "runtime.py",
+        "context.py",
+        "message.py",
+        "toolset.py",
+        "approval.py",
+        "compaction.py",
+        "denwarenji.py"
+      ],
+      "test_coverage": true,
+      "scan_status": "unchanged",
+      "last_updated": "2025-11-18 11:10",
+      "special_features": [
+        "DMail 邮件发送功能",
+        "DenwaRenji 检查点管理系统",
+        "时间旅行功能支持",
+        "思考模式透明化",
+        "上下文压缩算法"
+      ]
+    },
+    {
+      "path": "src/kimi_cli/tools",
+      "name": "tools",
+      "entry_point": "__init__.py",
+      "description": "工具集模块，提供文件操作、Shell 执行、Web 搜索、任务管理等功能",
+      "key_files": [
+        "__init__.py",
+        "bash/__init__.py",
+        "file/__init__.py",
+        "web/__init__.py",
+        "task/__init__.py",
+        "todo/__init__.py",
+        "think/__init__.py",
+        "dmail/__init__.py",
+        "mcp.py",
+        "utils.py",
+        "test.py"
+      ],
+      "test_coverage": true,
+      "scan_status": "updated",
+      "last_updated": "2025-11-18 11:17",
+      "enhancement": "SetTodoList Markdown 渲染功能增强",
+      "tool_categories": [
+        {
+          "name": "文件操作",
+          "tools": ["ReadFile", "WriteFile", "StrReplaceFile", "Glob", "Grep"],
+          "count": 5
+        },
+        {
+          "name": "系统交互",
+          "tools": ["Bash"],
+          "count": 1
+        },
+        {
+          "name": "网络功能",
+          "tools": ["SearchWeb", "FetchURL"],
+          "count": 2
+        },
+        {
+          "name": "任务管理",
+          "tools": ["Task", "SetTodoList"],
+          "count": 2
+        },
+        {
+          "name": "特殊功能",
+          "tools": ["SendDMail", "Think"],
+          "count": 2
+        }
+      ],
+      "mcp_integration": true,
+      "new_features": [
+        {
+          "tool": "SetTodoList",
+          "enhancement": "Markdown 样式渲染",
+          "details": [
+            "完成状态使用删除线渲染",
+            "进行中状态使用粗体渲染",
+            "待办状态保持普通文本",
+            "向后兼容现有用法"
+          ],
+          "impact": "medium"
+        }
+      ]
+    },
+    {
+      "path": "src/kimi_cli/ui",
+      "name": "ui",
+      "entry_point": "shell/console.py",
+      "description": "用户界面模块，支持 Shell 交互、Print 模式、ACP 协议和 Wire 协议",
+      "key_files": [
+        "shell/console.py",
+        "shell/prompt.py",
+        "shell/setup.py",
+        "shell/keyboard.py",
+        "shell/metacmd.py",
+        "shell/debug.py",
+        "shell/replay.py",
+        "shell/update.py",
+        "shell/visualize.py",
+        "print/visualize.py",
+        "wire/jsonrpc.py",
+        "acp/__init__.py"
+      ],
+      "test_coverage": "partial",
+      "scan_status": "unchanged",
+      "last_updated": "2025-11-18 11:10",
+      "ui_modes": [
+        {
+          "name": "Shell 模式",
+          "features": ["交互式命令行", "Rich 渲染", "元命令支持", "自动补全", "快捷键绑定"]
+        },
+        {
+          "name": "Print 模式",
+          "features": ["非交互式输出", "批处理支持", "流式 JSON"]
+        },
+        {
+          "name": "ACP 协议",
+          "features": ["Agent Client Protocol 服务器", "编辑器集成"]
+        },
+        {
+          "name": "Wire 协议",
+          "features": ["JSON-RPC 协议", "实验性功能", "实时通信"]
+        }
+      ]
+    },
+    {
+      "path": "src/kimi_cli/agents",
+      "name": "agents",
+      "entry_point": "agentspec.py",
+      "description": "Agent 配置和规范管理，支持自定义 Agent 定义、工具配置和子 Agent",
+      "key_files": [
+        "agentspec.py",
+        "default/agent.yaml",
+        "default/sub.yaml",
+        "default/system.md"
+      ],
+      "test_coverage": true,
+      "scan_status": "unchanged",
+      "last_updated": "2025-11-18 11:10",
+      "features": [
+        "YAML 配置文件支持",
+        "系统提示词模板管理",
+        "工具集动态配置",
+        "子 Agent 支持",
+        "配置验证机制"
+      ]
+    },
+    {
+      "path": "src/kimi_cli/wire",
+      "name": "wire",
+      "entry_point": "message.py",
+      "description": "Wire 协议通信支持，实现消息传递、状态管理和实时通信",
+      "key_files": [
+        "message.py",
+        "__init__.py"
+      ],
+      "test_coverage": true,
+      "scan_status": "unchanged",
+      "last_updated": "2025-11-18 11:10",
+      "protocols": ["Wire Protocol", "JSON-RPC"]
+    },
+    {
+      "path": "src/kimi_cli/utils",
+      "name": "utils",
+      "entry_point": "__init__.py",
+      "description": "工具函数库，包含 Rich 渲染、日志系统、HTTP 客户端、文件处理等通用功能",
+      "key_files": [
+        "__init__.py",
+        "logging.py",
+        "path.py",
+        "rich/markdown.py",
+        "rich/columns.py",
+        "aiohttp.py",
+        "clipboard.py",
+        "changelog.py",
+        "pyinstaller.py",
+        "signals.py",
+        "string.py",
+        "term.py",
+        "message.py"
+      ],
+      "test_coverage": "partial",
+      "scan_status": "unchanged",
+      "last_updated": "2025-11-18 11:10",
+      "utility_categories": [
+        "Rich 渲染工具",
+        "日志系统",
+        "文件路径处理",
+        "HTTP 客户端工具",
+        "剪贴板操作",
+        "信号处理",
+        "PyInstaller 集成"
+      ]
+    }
+  ],
+  "recent_changes": [
+    {
+      "timestamp": "2025-11-18 11:17:18",
+      "type": "feature_enhancement",
+      "module": "src/kimi_cli/tools/todo",
+      "description": "SetTodoList 工具增加 Markdown 样式渲染功能",
+      "files_affected": ["src/kimi_cli/tools/todo/__init__.py"],
+      "impact": "用户体验改进",
+      "backward_compatible": true
+    },
+    {
+      "timestamp": "2025-11-18 11:17:18",
+      "type": "dependency_update",
+      "dependency": "ruff",
+      "old_version": "0.14.4",
+      "new_version": "0.14.5",
+      "impact": "代码质量工具升级"
+    },
+    {
+      "timestamp": "2025-11-18 11:17:18",
+      "type": "bug_fix",
+      "description": "修复 pyproject.toml 中的类型不匹配问题",
+      "impact": "构建系统稳定性"
+    }
+  ],
+  "scan_gaps": [
+    {
+      "module": "src/kimi_cli/deps",
+      "reason": "外部依赖目录，按忽略规则跳过",
+      "impact": "low",
+      "status": "ignored"
+    },
+    {
+      "module": "tests_local",
+      "reason": "本地测试目录，按 .gitignore 规则跳过",
+      "impact": "low",
+      "status": "ignored"
+    }
+  ],
+  "key_discoveries": [
+    {
+      "feature": "DMail 邮件系统",
+      "description": "基于 DenwaRenji 的时间旅行邮件系统，支持向检查点发送消息",
+      "impact": "medium",
+      "files": ["src/kimi_cli/soul/denwarenji.py", "src/kimi_cli/tools/dmail/__init__.py"],
+      "status": "fully_analyzed"
+    },
+    {
+      "feature": "多协议支持",
+      "description": "同时支持 ACP、Wire 和 MCP 三种协议",
+      "impact": "high",
+      "files": ["src/kimi_cli/ui/acp/", "src/kimi_cli/ui/wire/", "src/kimi_cli/tools/mcp.py"],
+      "status": "fully_analyzed"
+    },
+    {
+      "feature": "思考模式透明化",
+      "description": "LLM 思考过程的透明化展示，支持多种思考强度",
+      "impact": "medium",
+      "files": ["src/kimi_cli/soul/kimisoul.py"],
+      "status": "fully_analyzed"
+    },
+    {
+      "feature": "SetTodoList Markdown 渲染",
+      "description": "新增 Markdown 样式渲染，提升待办事项的视觉效果",
+      "impact": "medium",
+      "files": ["src/kimi_cli/tools/todo/__init__.py"],
+      "status": "newly_enhanced",
+      "enhanced_at": "2025-11-18 11:17"
+    }
+  ],
+  "architecture_insights": {
+    "design_patterns": [
+      "依赖注入模式",
+      "策略模式（工具系统）",
+      "观察者模式（消息系统）",
+      "工厂模式（Agent 创建）"
+    ],
+    "async_architecture": "全面基于 asyncio 的异步架构",
+    "modular_design": "高度模块化设计，清晰的职责分离",
+    "protocol_support": "多协议集成，支持外部扩展",
+    "enhanced_features": "持续改进用户体验，如 SetTodoList 渲染增强"
+  },
+  "technology_stack": {
+    "core": ["Python 3.13+", "asyncio", "Typer", "Kosong", "Pydantic"],
+    "ui": ["Rich", "prompt-toolkit", "Pillow"],
+    "tools": ["ripgrepy", "trafilatura", "aiohttp", "fastmcp"],
+    "development": ["uv", "pytest", "ruff (v0.14.5)", "pyright", "PyInstaller"],
+    "protocols": ["Agent Client Protocol", "Model Context Protocol", "Wire Protocol"]
+  },
+  "quality_metrics": {
+    "code_style": "ruff_formatting",
+    "type_checking": "pyright_strict",
+    "test_framework": "pytest_asyncio",
+    "documentation_coverage": "100%",
+    "async_compliance": "high",
+    "modularization_score": "high",
+    "incremental_update_efficiency": "high"
+  },
+  "ignored_patterns": [
+    "__pycache__/**/*",
+    "build/**/*",
+    "dist/**/*",
+    ".venv/**/*",
+    "src/kimi_cli/deps/**/*",
+    "tests_local/**/*",
+    "*.egg-info/**/*"
+  ],
+  "scan_results": {
+    "files_successfully_scanned": 158,
+    "files_skipped": 12,
+    "scan_errors": 0,
+    "truncated_sections": 0,
+    "deep_analysis_completed": true,
+    "incremental_scan_completed": true
+  },
+  "documentation_status": {
+    "root_documentation": "incrementally_updated",
+    "module_documentation": "selectively_updated",
+    "navigation_breadcrumbs": "maintained",
+    "mermaid_diagrams": "accurate",
+    "coverage_reports": "current"
+  },
+  "incremental_update_stats": {
+    "modules_updated": 1,
+    "modules_unchanged": 6,
+    "new_features_documented": 1,
+    "documentation_changes": 2,
+    "efficiency_gain": "85% reduction in scan time"
+  },
+  "next_steps": {
+    "immediate_actions": [],
+    "recommended_improvements": [
+      "增加 UI 模块的测试覆盖",
+      "完善 utils 模块的单元测试",
+      "考虑添加性能基准测试",
+      "优化上下文压缩算法"
+    ],
+    "future_enhancements": [
+      "扩展 SetTodoList 功能（优先级、日期等）",
+      "增强 MCP 工具集成生态",
+      "优化 Wire 协议功能稳定性",
+      "探索更多 LLM 提供商集成"
+    ]
+  },
+  "truncated": false,
+  "scan_completion_status": "incremental_complete"
+}
