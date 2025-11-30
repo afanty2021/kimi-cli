@@ -10,24 +10,29 @@ from pathlib import Path
 
 import pytest
 from kosong.chat_provider.mock import MockChatProvider
+from kosong.tooling.empty import EmptyToolset
 from pydantic import SecretStr
 
-from kimi_cli.agentspec import DEFAULT_AGENT_FILE, ResolvedAgentSpec, load_agent_spec
+from kaos import get_current_kaos, reset_current_kaos, set_current_kaos
+from kaos.local import LocalKaos
+from kaos.path import KaosPath
 from kimi_cli.config import Config, MoonshotSearchConfig, get_default_config
 from kimi_cli.llm import LLM
+from kimi_cli.metadata import WorkDirMeta
 from kimi_cli.session import Session
+from kimi_cli.soul.agent import Agent, BuiltinSystemPromptArgs, LaborMarket, Runtime
 from kimi_cli.soul.approval import Approval
 from kimi_cli.soul.denwarenji import DenwaRenji
-from kimi_cli.soul.runtime import BuiltinSystemPromptArgs, Runtime
-from kimi_cli.tools.bash import Bash
+from kimi_cli.soul.toolset import KimiToolset
 from kimi_cli.tools.dmail import SendDMail
 from kimi_cli.tools.file.glob import Glob
-from kimi_cli.tools.file.grep import Grep
-from kimi_cli.tools.file.patch import PatchFile
+from kimi_cli.tools.file.grep_local import Grep
 from kimi_cli.tools.file.read import ReadFile
 from kimi_cli.tools.file.replace import StrReplaceFile
 from kimi_cli.tools.file.write import WriteFile
-from kimi_cli.tools.task import Task
+from kimi_cli.tools.multiagent.create import CreateSubagent
+from kimi_cli.tools.multiagent.task import Task
+from kimi_cli.tools.shell import Shell
 from kimi_cli.tools.think import Think
 from kimi_cli.tools.todo import SetTodoList
 from kimi_cli.tools.web.fetch import FetchURL
@@ -56,10 +61,14 @@ def llm() -> LLM:
 
 
 @pytest.fixture
-def temp_work_dir() -> Generator[Path]:
+def temp_work_dir() -> Generator[KaosPath]:
     """Create a temporary working directory for tests."""
-    with tempfile.TemporaryDirectory() as tmpdir:
-        yield Path(tmpdir)
+    token = set_current_kaos(LocalKaos())
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            yield KaosPath.unsafe_from_local_path(Path(tmpdir))
+    finally:
+        reset_current_kaos(token)
 
 
 @pytest.fixture
@@ -70,7 +79,7 @@ def temp_share_dir() -> Generator[Path]:
 
 
 @pytest.fixture
-def builtin_args(temp_work_dir: Path) -> BuiltinSystemPromptArgs:
+def builtin_args(temp_work_dir: KaosPath) -> BuiltinSystemPromptArgs:
     """Create builtin arguments with temporary work directory."""
     return BuiltinSystemPromptArgs(
         KIMI_NOW="1970-01-01T00:00:00+00:00",
@@ -87,12 +96,13 @@ def denwa_renji() -> DenwaRenji:
 
 
 @pytest.fixture
-def session(temp_work_dir: Path, temp_share_dir: Path) -> Session:
+def session(temp_work_dir: KaosPath, temp_share_dir: Path) -> Session:
     """Create a Session instance."""
     return Session(
         id="test",
         work_dir=temp_work_dir,
-        history_file=temp_share_dir / "history.jsonl",
+        work_dir_meta=WorkDirMeta(path=str(temp_work_dir), kaos=get_current_kaos().name),
+        context_file=temp_share_dir / "history.jsonl",
     )
 
 
@@ -103,6 +113,12 @@ def approval() -> Approval:
 
 
 @pytest.fixture
+def labor_market() -> LaborMarket:
+    """Create a LaborMarket instance."""
+    return LaborMarket()
+
+
+@pytest.fixture
 def runtime(
     config: Config,
     llm: LLM,
@@ -110,22 +126,34 @@ def runtime(
     denwa_renji: DenwaRenji,
     session: Session,
     approval: Approval,
+    labor_market: LaborMarket,
 ) -> Runtime:
     """Create a Runtime instance."""
-    return Runtime(
+    rt = Runtime(
         config=config,
         llm=llm,
         builtin_args=builtin_args,
         denwa_renji=denwa_renji,
         session=session,
         approval=approval,
+        labor_market=labor_market,
     )
+    rt.labor_market.add_fixed_subagent(
+        "mocker",
+        Agent(
+            name="Mocker",
+            system_prompt="You are a mock agent for testing.",
+            toolset=EmptyToolset(),
+            runtime=rt.copy_for_fixed_subagent(),
+        ),
+        "The mock agent for testing purposes.",
+    )
+    return rt
 
 
 @pytest.fixture
-def agent_spec() -> ResolvedAgentSpec:
-    """Create a AgentSpec instance."""
-    return load_agent_spec(DEFAULT_AGENT_FILE)
+def toolset() -> KimiToolset:
+    return KimiToolset()
 
 
 @contextmanager
@@ -145,9 +173,15 @@ def tool_call_context(tool_name: str) -> Generator[None]:
 
 
 @pytest.fixture
-def task_tool(agent_spec: ResolvedAgentSpec, runtime: Runtime) -> Task:
+def task_tool(runtime: Runtime) -> Task:
     """Create a Task tool instance."""
-    return Task(agent_spec, runtime)
+    return Task(runtime)
+
+
+@pytest.fixture
+def create_subagent_tool(toolset: KimiToolset, runtime: Runtime) -> CreateSubagent:
+    """Create a CreateSubagent tool instance."""
+    return CreateSubagent(toolset, runtime)
 
 
 @pytest.fixture
@@ -169,10 +203,10 @@ def set_todo_list_tool() -> SetTodoList:
 
 
 @pytest.fixture
-def bash_tool(approval: Approval) -> Generator[Bash]:
-    """Create a Bash tool instance."""
-    with tool_call_context("Bash"):
-        yield Bash(approval)
+def shell_tool(approval: Approval) -> Generator[Shell]:
+    """Create a Shell tool instance."""
+    with tool_call_context("Shell"):
+        yield Shell(approval)
 
 
 @pytest.fixture
@@ -212,24 +246,15 @@ def str_replace_file_tool(
 
 
 @pytest.fixture
-def patch_file_tool(
-    builtin_args: BuiltinSystemPromptArgs, approval: Approval
-) -> Generator[PatchFile]:
-    """Create a PatchFile tool instance."""
-    with tool_call_context("PatchFile"):
-        yield PatchFile(builtin_args, approval)
-
-
-@pytest.fixture
 def search_web_tool(config: Config) -> SearchWeb:
     """Create a SearchWeb tool instance."""
     return SearchWeb(config)
 
 
 @pytest.fixture
-def fetch_url_tool() -> FetchURL:
+def fetch_url_tool(config: Config) -> FetchURL:
     """Create a FetchURL tool instance."""
-    return FetchURL()
+    return FetchURL(config)
 
 
 # misc fixtures

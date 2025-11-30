@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import tempfile
 from collections.abc import Generator
 from pathlib import Path
@@ -10,6 +11,72 @@ from inline_snapshot import snapshot
 
 from kimi_cli.agentspec import DEFAULT_AGENT_FILE, load_agent_spec
 from kimi_cli.exception import AgentSpecError
+
+
+def test_load_default_agent_spec():
+    """Test loading the default agent specification."""
+    spec = load_agent_spec(DEFAULT_AGENT_FILE)
+
+    assert spec.name == snapshot("")
+    assert spec.system_prompt_path == DEFAULT_AGENT_FILE.parent / "system.md"
+    assert spec.system_prompt_args == snapshot({"ROLE_ADDITIONAL": ""})
+    assert spec.exclude_tools == snapshot([])
+    assert spec.tools == snapshot(
+        [
+            "kimi_cli.tools.multiagent:Task",
+            "kimi_cli.tools.todo:SetTodoList",
+            "kimi_cli.tools.shell:Shell",
+            "kimi_cli.tools.file:ReadFile",
+            "kimi_cli.tools.file:Glob",
+            "kimi_cli.tools.file:Grep",
+            "kimi_cli.tools.file:WriteFile",
+            "kimi_cli.tools.file:StrReplaceFile",
+            "kimi_cli.tools.web:SearchWeb",
+            "kimi_cli.tools.web:FetchURL",
+        ]
+    )
+    subagents = {
+        name: (spec.path.relative_to(DEFAULT_AGENT_FILE.parent).as_posix(), spec.description)
+        for name, spec in spec.subagents.items()
+    }
+    assert subagents == snapshot(
+        {"coder": ("sub.yaml", "Good at general software engineering tasks.")}
+    )
+
+    subagent_specs = {name: load_agent_spec(spec.path) for name, spec in spec.subagents.items()}
+    assert subagent_specs["coder"].name == snapshot("")
+    assert subagent_specs["coder"].system_prompt_path == DEFAULT_AGENT_FILE.parent / "system.md"
+    assert subagent_specs["coder"].system_prompt_args == snapshot(
+        {
+            "ROLE_ADDITIONAL": "You are now running as a subagent. All the `user` messages are sent by the main agent. The main agent cannot see your context, it can only see your last message when you finish the task. You need to provide a comprehensive summary on what you have done and learned in your final message. If you wrote or modified any files, you must mention them in the summary.\n"  # noqa: E501
+        }
+    )
+    assert subagent_specs["coder"].exclude_tools == snapshot(
+        [
+            "kimi_cli.tools.multiagent:Task",
+            "kimi_cli.tools.dmail:SendDMail",
+            "kimi_cli.tools.todo:SetTodoList",
+        ]
+    )
+    assert subagent_specs["coder"].tools == snapshot(
+        [
+            "kimi_cli.tools.multiagent:Task",
+            "kimi_cli.tools.todo:SetTodoList",
+            "kimi_cli.tools.shell:Shell",
+            "kimi_cli.tools.file:ReadFile",
+            "kimi_cli.tools.file:Glob",
+            "kimi_cli.tools.file:Grep",
+            "kimi_cli.tools.file:WriteFile",
+            "kimi_cli.tools.file:StrReplaceFile",
+            "kimi_cli.tools.web:SearchWeb",
+            "kimi_cli.tools.web:FetchURL",
+        ]
+    )
+    sub_subagents = {
+        name: (spec.path.relative_to(DEFAULT_AGENT_FILE.parent).as_posix(), spec.description)
+        for name, spec in subagent_specs["coder"].subagents.items()
+    }
+    assert sub_subagents == snapshot({})
 
 
 def test_load_agent_spec_basic(agent_file: Path):
@@ -43,8 +110,8 @@ def test_load_agent_spec_with_exclude_tools(agent_file_with_tools: Path):
     """Test loading agent spec with excluded tools."""
     spec = load_agent_spec(agent_file_with_tools)
 
-    assert spec.tools == snapshot(["kimi_cli.tools.think:Think", "kimi_cli.tools.bash:Bash"])
-    assert spec.exclude_tools == snapshot(["kimi_cli.tools.bash:Bash"])
+    assert spec.tools == snapshot(["kimi_cli.tools.think:Think", "kimi_cli.tools.shell:Shell"])
+    assert spec.exclude_tools == snapshot(["kimi_cli.tools.shell:Shell"])
 
 
 def test_load_agent_spec_extension(agent_file_extending: Path):
@@ -82,9 +149,9 @@ agent:
         )
         assert spec.tools == snapshot(
             [
-                "kimi_cli.tools.task:Task",
+                "kimi_cli.tools.multiagent:Task",
                 "kimi_cli.tools.todo:SetTodoList",
-                "kimi_cli.tools.bash:Bash",
+                "kimi_cli.tools.shell:Shell",
                 "kimi_cli.tools.file:ReadFile",
                 "kimi_cli.tools.file:Glob",
                 "kimi_cli.tools.file:Grep",
@@ -121,7 +188,10 @@ agent:
 def test_load_agent_spec_nonexistent_file():
     """Test loading nonexistent agent spec file raises AssertionError."""
     nonexistent = Path("/nonexistent/agent.yaml")
-    with pytest.raises(AssertionError, match="expect agent file to exist"):
+    with pytest.raises(
+        AgentSpecError,
+        match=re.compile(r"Agent spec file not found: [\\/]nonexistent[\\/]agent.yaml"),
+    ):
         load_agent_spec(nonexistent)
 
 
@@ -230,8 +300,8 @@ version: 1
 agent:
   name: "Test Agent"
   system_prompt_path: ./system.md
-  tools: ["kimi_cli.tools.think:Think", "kimi_cli.tools.bash:Bash"]
-  exclude_tools: ["kimi_cli.tools.bash:Bash"]
+  tools: ["kimi_cli.tools.think:Think", "kimi_cli.tools.shell:Shell"]
+  exclude_tools: ["kimi_cli.tools.shell:Shell"]
 """)
 
         yield agent_yaml

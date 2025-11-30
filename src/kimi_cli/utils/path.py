@@ -4,8 +4,11 @@ import asyncio
 import os
 import re
 from pathlib import Path
+from stat import S_ISDIR
 
 import aiofiles.os
+
+from kaos.path import KaosPath
 
 _ROTATION_OPEN_FLAGS = os.O_CREAT | os.O_EXCL | os.O_WRONLY
 _ROTATION_FILE_MODE = 0o600
@@ -50,3 +53,33 @@ async def next_available_rotation(path: Path) -> Path | None:
         if await _reserve_rotation_path(next_path):
             return next_path
         next_num += 1
+
+
+async def list_directory(work_dir: KaosPath) -> str:
+    entries: list[str] = []
+    async for entry in await work_dir.iterdir():
+        st = await entry.stat()
+        mode = "d" if S_ISDIR(st.st_mode) else "-"
+        mode += "r" if st.st_mode & 0o400 else "-"
+        mode += "w" if st.st_mode & 0o200 else "-"
+        mode += "x" if st.st_mode & 0o100 else "-"
+        mode += "r" if st.st_mode & 0o040 else "-"
+        mode += "w" if st.st_mode & 0o020 else "-"
+        mode += "x" if st.st_mode & 0o010 else "-"
+        mode += "r" if st.st_mode & 0o004 else "-"
+        mode += "w" if st.st_mode & 0o002 else "-"
+        mode += "x" if st.st_mode & 0o001 else "-"
+        entries.append(f"{mode} {st.st_size:>10} {entry.name}")
+    return "\n".join(entries)
+
+
+def shorten_home(path: KaosPath) -> KaosPath:
+    """
+    Convert absolute path to use `~` for home directory.
+    """
+    try:
+        home = KaosPath.home()
+        p = path.relative_to(home)
+        return KaosPath("~") / p
+    except Exception:
+        return path

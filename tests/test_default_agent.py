@@ -9,7 +9,7 @@ from kosong.tooling import Tool
 
 from kimi_cli.agentspec import DEFAULT_AGENT_FILE
 from kimi_cli.soul.agent import load_agent
-from kimi_cli.soul.runtime import Runtime
+from kimi_cli.soul.agent import Runtime
 
 
 @pytest.mark.asyncio
@@ -79,7 +79,7 @@ Use this as your basic understanding of the project structure.
 
 ## Date and Time
 
-The current date and time in ISO format is `1970-01-01T00:00:00+00:00`. This is only a reference for you when searching the web, or checking file modification time, etc. If you need the exact time, use Bash tool with proper command.
+The current date and time in ISO format is `1970-01-01T00:00:00+00:00`. This is only a reference for you when searching the web, or checking file modification time, etc. If you need the exact time, use Shell tool with proper command.
 
 # Project Information
 
@@ -124,6 +124,7 @@ Examples:
 
 **Available Subagents:**
 
+- `mocker`: The mock agent for testing purposes.
 - `coder`: Good at general software engineering tasks.
 """,
                 parameters={
@@ -165,28 +166,25 @@ Abusing this tool to track too small steps will just waste your time and make yo
 However, do not get stuck in a rut. Be flexible. Sometimes, you may try to use todo list at first, then realize the task is too simple and you can simply stop using it; or, sometimes, you may realize the task is complex after a few steps and then you can start using todo list to break it down.
 """,
                 parameters={
-                    "$defs": {
-                        "Todo": {
-                            "properties": {
-                                "title": {
-                                    "description": "The title of the todo",
-                                    "minLength": 1,
-                                    "type": "string",
-                                },
-                                "status": {
-                                    "description": "The status of the todo",
-                                    "enum": ["Pending", "In Progress", "Done"],
-                                    "type": "string",
-                                },
-                            },
-                            "required": ["title", "status"],
-                            "type": "object",
-                        }
-                    },
                     "properties": {
                         "todos": {
                             "description": "The updated todo list",
-                            "items": {"$ref": "#/$defs/Todo"},
+                            "items": {
+                                "properties": {
+                                    "title": {
+                                        "description": "The title of the todo",
+                                        "minLength": 1,
+                                        "type": "string",
+                                    },
+                                    "status": {
+                                        "description": "The status of the todo",
+                                        "enum": ["Pending", "In Progress", "Done"],
+                                        "type": "string",
+                                    },
+                                },
+                                "required": ["title", "status"],
+                                "type": "object",
+                            },
                             "type": "array",
                         }
                     },
@@ -195,7 +193,7 @@ However, do not get stuck in a rut. Be flexible. Sometimes, you may try to use t
                 },
             ),
             Tool(
-                name="Bash",
+                name="Shell",
                 description="""\
 Execute a shell command. Use this tool to explore the filesystem, edit files, run scripts, get system information, etc.
 
@@ -224,7 +222,6 @@ The stdout and stderr will be combined and returned as a string. The output may 
 - File viewing/editing: cat, grep, head, tail, diff, patch
 - Text processing: awk, sed, sort, uniq, wc
 - System information/operations: ps, kill, top, df, free, uname, whoami, id, date
-- Package management: pip, uv, npm, yarn, bun, cargo
 - Network operations: curl, wget, ping, telnet, ssh
 - Archive operations: tar, zip, unzip
 - Other: Other commands available in the shell environment. Check the existence of a command by running `which <command>` before using it.
@@ -261,7 +258,7 @@ Read content from a file.
 - Any lines longer than 2000 characters will be truncated, ending with "...".
 - The system will notify you when there is any limitation hit when reading the file.
 - This tool is a tool that you typically want to use in parallel. Always read multiple files in one response when possible.
-- This tool can only read text files. To list directories, you must use the Glob tool or `ls` command via the Bash tool. To read other file types, use appropriate commands via the Bash tool.
+- This tool can only read text files. To list directories, you must use the Glob tool or `ls` command via the Shell tool. To read other file types, use appropriate commands via the Shell tool.
 - If the file doesn't exist or path is invalid, an error will be returned.
 - If you want to search for a certain content/pattern, prefer Grep tool over ReadFile.
 """,
@@ -336,7 +333,7 @@ Find files and directories using glob patterns. This tool supports standard glob
 A powerful search tool based-on ripgrep.
 
 **Tips:**
-- ALWAYS use Grep tool instead of running `grep` or `rg` command with Bash tool.
+- ALWAYS use Grep tool instead of running `grep` or `rg` command with Shell tool.
 - Use the ripgrep pattern syntax, not grep syntax. E.g. you need to escape braces like `\\\\{` to search for `{`.
 """,
                 parameters={
@@ -444,30 +441,9 @@ Replace specific strings within a specified file.
 - Only use this tool on text files.
 - Multi-line strings are supported.
 - Can specify a single edit or a list of edits in one call.
-- You should prefer this tool over WriteFile tool and Bash `sed` command.
+- You should prefer this tool over WriteFile tool and Shell `sed` command.
 """,
                 parameters={
-                    "$defs": {
-                        "Edit": {
-                            "properties": {
-                                "old": {
-                                    "description": "The old string to replace. Can be multi-line.",
-                                    "type": "string",
-                                },
-                                "new": {
-                                    "description": "The new string to replace with. Can be multi-line.",
-                                    "type": "string",
-                                },
-                                "replace_all": {
-                                    "default": False,
-                                    "description": "Whether to replace all occurrences.",
-                                    "type": "boolean",
-                                },
-                            },
-                            "required": ["old", "new"],
-                            "type": "object",
-                        }
-                    },
                     "properties": {
                         "path": {
                             "description": "The absolute path to the file to edit.",
@@ -475,8 +451,47 @@ Replace specific strings within a specified file.
                         },
                         "edit": {
                             "anyOf": [
-                                {"$ref": "#/$defs/Edit"},
-                                {"items": {"$ref": "#/$defs/Edit"}, "type": "array"},
+                                {
+                                    "properties": {
+                                        "old": {
+                                            "description": "The old string to replace. Can be multi-line.",
+                                            "type": "string",
+                                        },
+                                        "new": {
+                                            "description": "The new string to replace with. Can be multi-line.",
+                                            "type": "string",
+                                        },
+                                        "replace_all": {
+                                            "default": False,
+                                            "description": "Whether to replace all occurrences.",
+                                            "type": "boolean",
+                                        },
+                                    },
+                                    "required": ["old", "new"],
+                                    "type": "object",
+                                },
+                                {
+                                    "items": {
+                                        "properties": {
+                                            "old": {
+                                                "description": "The old string to replace. Can be multi-line.",
+                                                "type": "string",
+                                            },
+                                            "new": {
+                                                "description": "The new string to replace with. Can be multi-line.",
+                                                "type": "string",
+                                            },
+                                            "replace_all": {
+                                                "default": False,
+                                                "description": "Whether to replace all occurrences.",
+                                                "type": "boolean",
+                                            },
+                                        },
+                                        "required": ["old", "new"],
+                                        "type": "object",
+                                    },
+                                    "type": "array",
+                                },
                             ],
                             "description": "The edit(s) to apply to the file. You can provide a single edit or a list of edits here.",
                         },
@@ -524,6 +539,117 @@ Replace specific strings within a specified file.
                     "required": ["url"],
                     "type": "object",
                 },
+            ),
+        ]
+    )
+
+    subagents = [
+        (
+            name,
+            runtime.labor_market.fixed_subagent_descs[name],
+            agent.system_prompt.replace(
+                f"{runtime.builtin_args.KIMI_WORK_DIR}", "/path/to/work/dir"
+            ),
+            [tool.name for tool in agent.toolset.tools],
+        )
+        for name, agent in runtime.labor_market.fixed_subagents.items()
+    ]
+    assert subagents == snapshot(
+        [
+            (
+                "mocker",
+                "The mock agent for testing purposes.",
+                "You are a mock agent for testing.",
+                [],
+            ),
+            (
+                "coder",
+                "Good at general software engineering tasks.",
+                """\
+You are Kimi CLI. You are an interactive CLI agent specializing in software engineering tasks. Your primary goal is to help users safely and efficiently, adhering strictly to the following instructions and utilizing your available tools.
+
+You are now running as a subagent. All the `user` messages are sent by the main agent. The main agent cannot see your context, it can only see your last message when you finish the task. You need to provide a comprehensive summary on what you have done and learned in your final message. If you wrote or modified any files, you must mention them in the summary.
+
+
+# Prompt and Tool Use
+
+The user's requests are provided in natural language within `user` messages, which may contain code snippets, logs, file paths, or specific requirements. ALWAYS follow the user's requests, always stay on track. Do not do anything that is not asked.
+
+When handling the user's request, you can call available tools to accomplish the task. When calling tools, do not provide explanations because the tool calls themselves should be self-explanatory. You MUST follow the description of each tool and its parameters when calling tools.
+
+You have the capability to output any number of tool calls in a single response. If you anticipate making multiple non-interfering tool calls, you are HIGHLY RECOMMENDED to make them in parallel to significantly improve efficiency. This is very important to your performance.
+
+The results of the tool calls will be returned to you in a `tool` message. In some cases, non-plain-text content might be sent as a `user` message following the `tool` message. You must decide on your next action based on the tool call results, which could be one of the following: 1. Continue working on the task, 2. Inform the user that the task is completed or has failed, or 3. Ask the user for more information.
+
+The system may, where appropriate, insert hints or information wrapped in `<system>` and `</system>` tags within `user` or `tool` messages. This information is relevant to the current task or tool calls, may or may not be important to you. Take this info into consideration when determining your next action.
+
+When responding to the user, you MUST use the SAME language as the user, unless explicitly instructed to do otherwise.
+
+# General Coding Guidelines
+
+Always think carefully. Be patient and thorough. Do not give up too early.
+
+ALWAYS, keep it stupidly simple. Do not overcomplicate things.
+
+When building something from scratch, you should:
+
+- Understand the user's requirements.
+- Design the architecture and make a plan for the implementation.
+- Write the code in a modular and maintainable way.
+
+When working on existing codebase, you should:
+
+- Understand the codebase and the user's requirements. Identify the ultimate goal and the most important criteria to achieve the goal.
+- For a bug fix, you typically need to check error logs or failed tests, scan over the codebase to find the root cause, and figure out a fix. If user mentioned any failed tests, you should make sure they pass after the changes.
+- For a feature, you typically need to design the architecture, and write the code in a modular and maintainable way, with minimal intrusions to existing code. Add new tests if the project already has tests.
+- For a code refactoring, you typically need to update all the places that call the code you are refactoring if the interface changes. DO NOT change any existing logic especially in tests, focus only on fixing any errors caused by the interface changes.
+- Make MINIMAL changes to achieve the goal. This is very important to your performance.
+- Follow the coding style of existing code in the project.
+
+# Working Environment
+
+## Operating System
+
+The operating environment is not in a sandbox. Any action especially mutation you do will immediately affect the user's system. So you MUST be extremely cautious. Unless being explicitly instructed to do so, you should never access (read/write/execute) files outside of the working directory.
+
+## Working Directory
+
+The current working directory is `/path/to/work/dir`. This should be considered as the project root if you are instructed to perform tasks on the project. Every file system operation will be relative to the working directory if you do not explicitly specify the absolute path. Tools may require absolute paths for some parameters, if so, you should strictly follow the requirements.
+
+The directory listing of current working directory is:
+
+```
+Test ls content
+```
+
+Use this as your basic understanding of the project structure.
+
+## Date and Time
+
+The current date and time in ISO format is `1970-01-01T00:00:00+00:00`. This is only a reference for you when searching the web, or checking file modification time, etc. If you need the exact time, use Shell tool with proper command.
+
+# Project Information
+
+Markdown files named `AGENTS.md` usually contain the background, structure, coding styles, user preferences and other relevant information about the project. You should use this information to understand the project and the user's preferences. `AGENTS.md` files may exist at different locations in the project, but typically there is one in the project root. The following content between two `---`s is the content of the root-level `AGENTS.md` file.
+
+`/path/to/work/dir/AGENTS.md`:
+
+---
+
+Test agents content
+
+---\
+""",
+                [
+                    "Shell",
+                    "ReadFile",
+                    "Glob",
+                    "Grep",
+                    "WriteFile",
+                    "StrReplaceFile",
+                    "SearchWeb",
+                    "FetchURL",
+                ],
             ),
         ]
     )
