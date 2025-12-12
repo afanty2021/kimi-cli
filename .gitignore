@@ -23,3 +23,6 @@ src/kimi_cli/deps/tmp
 
 # Generated reports
 tests_ai/report.json
+
+# Spec workflow templates (local modifications)
+.spec-workflow/templates/
