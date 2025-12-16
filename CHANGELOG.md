@@ -9,6 +9,13 @@ Internal builds may append content to the Unreleased section.
 Only write entries that are worth mentioning to users.
 -->
 
+## [0.64] - 2025-12-15
+
+- UI: Fix UTF-16 surrogate characters input on Windows
+- Core: Add `/sessions` meta command to list existing sessions and switch to a selected one
+- CLI: Add `--session/-S` option to specify session ID to resume
+- MCP: Add `kimi mcp` subcommand group to manage global MCP config file `~/.kimi/mcp.json`
+
 ## [0.63] - 2025-12-12
 
 - Tool: Fix `FetchURL` tool incorrect output when fetching via service fails
