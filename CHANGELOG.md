@@ -9,6 +9,49 @@ Internal builds may append content to the Unreleased section.
 Only write entries that are worth mentioning to users.
 -->
 
+## [Unreleased]
+
+
+## [0.68] - 2025-12-24
+
+- CLI: Add `--config` and `--config-file` options to pass in config JSON/TOML
+- Core: Allow `Config` in addition to `Path` for the `config` parameter of `KimiCLI.create`
+- Tool: Include diff display blocks in `WriteFile` and `StrReplaceFile` approvals/results
+- Wire: Add display blocks to approval requests (including diffs) with backward-compatible defaults
+- ACP: Show file diff previews in tool results and approval prompts
+- ACP: Connect to MCP servers managed by ACP clients
+- ACP: Run shell commands in ACP client terminal if supported
+- Lib: Add `KimiToolset.find` method to find tools by class or name
+- Lib: Add `ToolResultBuilder.display` method to append display blocks to tool results
+- MCP: Add `kimi mcp auth` and related subcommands to manage MCP authorization
+
+## [0.67] - 2025-12-22
+
+- ACP: Advertise slash commands in single-session ACP mode (`kimi --acp`)
+- MCP: Add `mcp.client` config section to configure MCP tool call timeout and other future options
+- Core: Improve default system prompt and `ReadFile` tool
+- UI: Fix Ctrl-C not working in some rare cases
+
+## [0.66] - 2025-12-19
+
+- Lib: Provide `token_usage` and `message_id` in `StatusUpdate` Wire message
+- Lib: Add `KimiToolset.load_tools` method to load tools with dependency injection
+- Lib: Add `KimiToolset.load_mcp_tools` method to load MCP tools
+- Lib: Move `MCPTool` from `kimi_cli.tools.mcp` to `kimi_cli.soul.toolset`
+- Lib: Add `InvalidToolError`, `MCPConfigError` and `MCPRuntimeError`
+- Lib: Make the detailed Kimi CLI exception classes extend `ValueError` or `RuntimeError`
+- Lib: Allow passing validated `list[fastmcp.mcp_config.MCPConfig]` as `mcp_configs` for `KimiCLI.create` and `load_agent`
+- Lib: Fix exception raising for `KimiCLI.create`, `load_agent`, `KimiToolset.load_tools` and `KimiToolset.load_mcp_tools`
+- LLM: Add provider type `vertexai` to support Vertex AI
+- LLM: Rename Gemini Developer API provider type from `google_genai` to `gemini`
+- Config: Migrate config file from JSON to TOML
+- MCP: Connect to MCP servers in background and parallel to reduce startup time
+- MCP: Add `mcp-session-id` HTTP header when connecting to MCP servers
+- Lib: Split slash commands (prev "meta commands") into two groups: Shell-level and KimiSoul-level
+- Lib: Add `available_slash_commands` property to `Soul` protocol
+- ACP: Advertise slash commands `/init`, `/compact` and `/yolo` to ACP clients
+- SlashCmd: Add `/mcp` slash command to display MCP server and tool status
+
 ## [0.65] - 2025-12-16
 
 - Lib: Support creating named sessions via `Session.create(work_dir, session_id)`

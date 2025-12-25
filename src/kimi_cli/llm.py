@@ -17,7 +17,9 @@ type ProviderType = Literal[
     "openai_legacy",
     "openai_responses",
     "anthropic",
-    "google_genai",
+    "google_genai",  # for backward-compatibility, equals to `gemini`
+    "gemini",
+    "vertexai",
     "_chaos",
 ]
 
@@ -65,7 +67,7 @@ def augment_provider_with_env_vars(provider: LLMProvider, model: LLMModel) -> di
                 model.capabilities = set(
                     cast(ModelCapability, cap)
                     for cap in caps_lower
-                    if cap in get_args(ModelCapability)
+                    if cap in get_args(ModelCapability.__value__)
                 )
                 applied["KIMI_MODEL_CAPABILITIES"] = capabilities
         case "openai_legacy" | "openai_responses":
@@ -98,8 +100,19 @@ def create_llm(
                     **(provider.custom_headers or {}),
                 },
             )
+
+            gen_kwargs: Kimi.GenerationKwargs = {}
             if session_id:
-                chat_provider = chat_provider.with_generation_kwargs(prompt_cache_key=session_id)
+                gen_kwargs["prompt_cache_key"] = session_id
+            if temperature := os.getenv("KIMI_MODEL_TEMPERATURE"):
+                gen_kwargs["temperature"] = float(temperature)
+            if top_p := os.getenv("KIMI_MODEL_TOP_P"):
+                gen_kwargs["top_p"] = float(top_p)
+            if max_tokens := os.getenv("KIMI_MODEL_MAX_TOKENS"):
+                gen_kwargs["max_tokens"] = int(max_tokens)
+
+            if gen_kwargs:
+                chat_provider = chat_provider.with_generation_kwargs(**gen_kwargs)
         case "openai_legacy":
             from kosong.contrib.chat_provider.openai_legacy import OpenAILegacy
 
@@ -125,13 +138,23 @@ def create_llm(
                 api_key=provider.api_key.get_secret_value(),
                 default_max_tokens=50000,
             )
-        case "google_genai":
+        case "google_genai" | "gemini":
             from kosong.contrib.chat_provider.google_genai import GoogleGenAI
 
             chat_provider = GoogleGenAI(
                 model=model.model,
                 base_url=provider.base_url,
                 api_key=provider.api_key.get_secret_value(),
+            )
+        case "vertexai":
+            from kosong.contrib.chat_provider.google_genai import GoogleGenAI
+
+            os.environ.update(provider.env or {})
+            chat_provider = GoogleGenAI(
+                model=model.model,
+                base_url=provider.base_url,
+                api_key=provider.api_key.get_secret_value(),
+                vertexai=True,
             )
         case "_chaos":
             from kosong.chat_provider.chaos import ChaosChatProvider, ChaosConfig

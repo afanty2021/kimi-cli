@@ -5,7 +5,7 @@ import contextlib
 import warnings
 from collections.abc import AsyncGenerator
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import kaos
 from kaos.path import KaosPath
@@ -14,7 +14,7 @@ from pydantic import SecretStr
 
 from kimi_cli.agentspec import DEFAULT_AGENT_FILE
 from kimi_cli.cli import InputFormat, OutputFormat
-from kimi_cli.config import LLMModel, LLMProvider, load_config
+from kimi_cli.config import Config, LLMModel, LLMProvider, load_config
 from kimi_cli.llm import augment_provider_with_env_vars, create_llm
 from kimi_cli.session import Session
 from kimi_cli.share import get_share_dir
@@ -26,6 +26,9 @@ from kimi_cli.utils.logging import StreamToLogger, logger
 from kimi_cli.utils.path import shorten_home
 from kimi_cli.wire import Wire, WireUISide
 from kimi_cli.wire.message import WireMessage
+
+if TYPE_CHECKING:
+    from fastmcp.mcp_config import MCPConfig
 
 
 def enable_logging(debug: bool = False) -> None:
@@ -48,8 +51,8 @@ class KimiCLI:
         session: Session,
         *,
         yolo: bool = False,
-        mcp_configs: list[dict[str, Any]] | None = None,
-        config_file: Path | None = None,
+        mcp_configs: list[MCPConfig] | list[dict[str, Any]] | None = None,
+        config: Config | Path | None = None,
         model_name: str | None = None,
         thinking: bool = False,
         agent_file: Path | None = None,
@@ -60,16 +63,24 @@ class KimiCLI:
         Args:
             session (Session): A session created by `Session.create` or `Session.continue_`.
             yolo (bool, optional): Approve all actions without confirmation. Defaults to False.
-            config_file (Path | None, optional): Path to the configuration file. Defaults to None.
+            mcp_configs (list[MCPConfig | dict[str, Any]] | None, optional): MCP configs to load
+                MCP tools from. Defaults to None.
+            config (Config | Path | None, optional): Configuration to use, or path to config file.
+                Defaults to None.
             model_name (str | None, optional): Name of the model to use. Defaults to None.
+            thinking (bool, optional): Whether to enable thinking mode. Defaults to False.
             agent_file (Path | None, optional): Path to the agent file. Defaults to None.
 
         Raises:
             FileNotFoundError: When the agent file is not found.
-            ConfigError(KimiCLIException): When the configuration is invalid.
-            AgentSpecError(KimiCLIException): When the agent specification is invalid.
+            ConfigError(KimiCLIException, ValueError): When the configuration is invalid.
+            AgentSpecError(KimiCLIException, ValueError): When the agent specification is invalid.
+            InvalidToolError(KimiCLIException, ValueError): When any tool cannot be loaded.
+            MCPConfigError(KimiCLIException, ValueError): When any MCP configuration is invalid.
+            MCPRuntimeError(KimiCLIException, RuntimeError): When any MCP server cannot be
+                connected.
         """
-        config = load_config(config_file)
+        config = config if isinstance(config, Config) else load_config(config)
         logger.info("Loaded config: {config}", config=config)
 
         model: LLMModel | None = None

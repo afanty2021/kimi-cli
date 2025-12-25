@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -7,16 +8,21 @@ from typing import Any
 import acp
 from kaos.path import KaosPath
 
+from kimi_cli.acp.mcp import acp_mcp_servers_to_mcp_config
 from kimi_cli.acp.session import ACPSession
+from kimi_cli.acp.tools import replace_tools
 from kimi_cli.acp.types import ACPContentBlock, MCPServer
 from kimi_cli.app import KimiCLI
 from kimi_cli.constant import NAME, VERSION
 from kimi_cli.session import Session
+from kimi_cli.soul.slash import registry as soul_slash_registry
+from kimi_cli.soul.toolset import KimiToolset
 from kimi_cli.utils.logging import logger
 
 
 class ACPServer:
     def __init__(self) -> None:
+        self.client_capabilities: acp.schema.ClientCapabilities | None = None
         self.conn: acp.Client | None = None
         self.sessions: dict[str, ACPSession] = {}
 
@@ -38,6 +44,7 @@ class ACPServer:
             capabilities=client_capabilities,
             info=client_info,
         )
+        self.client_capabilities = client_capabilities
         return acp.InitializeResponse(
             protocol_version=protocol_version,
             agent_capabilities=acp.schema.AgentCapabilities(
@@ -59,13 +66,39 @@ class ACPServer:
     ) -> acp.NewSessionResponse:
         logger.info("Creating new session for working directory: {cwd}", cwd=cwd)
         assert self.conn is not None, "ACP client not connected"
+        assert self.client_capabilities is not None, "ACP connection not initialized"
+
         session = await Session.create(KaosPath.unsafe_from_local_path(Path(cwd)))
+        mcp_config = acp_mcp_servers_to_mcp_config(mcp_servers)
         cli_instance = await KimiCLI.create(
             session,
-            # TODO: support MCP servers
+            mcp_configs=[mcp_config],
             thinking=True,
         )
         self.sessions[session.id] = ACPSession(session.id, cli_instance.run, self.conn)
+
+        if isinstance(cli_instance.soul.agent.toolset, KimiToolset):
+            replace_tools(
+                self.client_capabilities,
+                self.conn,
+                session.id,
+                cli_instance.soul.agent.toolset,
+                cli_instance.soul.runtime,
+            )
+
+        available_commands = [
+            acp.schema.AvailableCommand(name=cmd.name, description=cmd.description)
+            for cmd in soul_slash_registry.list_commands()
+        ]
+        asyncio.create_task(
+            self.conn.session_update(
+                session_id=session.id,
+                update=acp.schema.AvailableCommandsUpdate(
+                    session_update="available_commands_update",
+                    available_commands=available_commands,
+                ),
+            )
+        )
         return acp.NewSessionResponse(session_id=session.id)
 
     async def load_session(
@@ -73,9 +106,12 @@ class ACPServer:
     ) -> None:
         logger.info("Loading session: {id} for working directory: {cwd}", id=session_id, cwd=cwd)
         assert self.conn is not None, "ACP client not connected"
+        assert self.client_capabilities is not None, "ACP connection not initialized"
+
         if session_id in self.sessions:
             logger.warning("Session already loaded: {id}", id=session_id)
             return
+
         work_dir = KaosPath.unsafe_from_local_path(Path(cwd))
         session = await Session.find(work_dir, session_id)
         if session is None:
@@ -83,12 +119,22 @@ class ACPServer:
                 "Session not found: {id} for working directory: {cwd}", id=session_id, cwd=cwd
             )
             raise acp.RequestError.invalid_params({"session_id": "Session not found"})
+        mcp_config = acp_mcp_servers_to_mcp_config(mcp_servers)
         cli_instance = await KimiCLI.create(
             session,
-            # TODO: support MCP servers
+            mcp_configs=[mcp_config],
             thinking=True,
         )
         self.sessions[session.id] = ACPSession(session.id, cli_instance.run, self.conn)
+
+        if isinstance(cli_instance.soul.agent.toolset, KimiToolset):
+            replace_tools(
+                self.client_capabilities,
+                self.conn,
+                session.id,
+                cli_instance.soul.agent.toolset,
+                cli_instance.soul.runtime,
+            )
 
         # TODO: replay session history?
 
