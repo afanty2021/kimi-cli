@@ -26,3 +26,7 @@ tests_ai/report.json
 
 # Spec workflow templates (local modifications)
 .spec-workflow/templates/
+
+# nix build result
+result
+result-*
