@@ -4,6 +4,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-01-04**: 更新至 v0.72 - CLI 模块化重构、Toad TUI、技能系统、Monorepo 架构
 - **2025-12-25**: 更新至 v0.68 - 添加 MCP OAuth 支持、配置文件迁移到 TOML、ACP 增强功能
 - **2025-11-18**: 初始化主应用模块文档
 
@@ -19,9 +20,13 @@
 
 ## 入口与启动
 
-### 主要入口文件
+### 主要入口文件 (v0.71+ 模块化重构)
 
-- **`cli.py`**: CLI 主入口，使用 Typer 框架
+- **`cli/__init__.py`**: CLI 主入口，使用 Typer 框架
+- **`cli/__main__.py`**: Python 模块执行入口
+- **`cli/info.py`**: `kimi info` 子命令实现
+- **`cli/mcp.py`**: `kimi mcp` 子命令组实现
+- **`toad.py`**: `kimi term` TUI 启动器
 - **`app.py`**: KimiCLI 主应用类实现
 - **`__init__.py`**: 模块初始化（基本为空）
 
@@ -32,24 +37,46 @@
 kimi = "kimi_cli.cli:cli"
 
 # 主命令函数
-@cli.command()
+@cli.callback(invoke_without_command=True)
 def kimi(
+    ctx: typer.Context,
     # 支持的参数：版本、调试、代理文件、模型、工作目录等
-    # 四种运行模式：shell、print、acp、wire
+    # 五种运行模式：shell、print、acp、wire、term
     # MCP 配置支持
+    # 技能目录配置 (v0.69+)
 )
+```
+
+### CLI 子命令 (v0.71+)
+
+```python
+# 子命令注册
+cli.add_typer(info_cli, name="info")    # kimi info
+cli.add_typer(mcp_cli, name="mcp")      # kimi mcp
+cli.command()(run_acp)                  # kimi acp
+cli.command()(run_term)                 # kimi term
 ```
 
 ## 对外接口
 
-### CLI 命令接口
+### CLI 命令接口 (v0.71+ 更新)
 
-- **基础命令**: `kimi` - 启动交互式 Shell 模式
-- **打印模式**: `kimi --print` - 非交互式执行
-- **ACP 服务器**: `kimi --acp` - Agent Client Protocol 服务器模式
-- **Wire 服务器**: `kimi --wire` - 实验性 Wire 协议服务器
-- **MCP 管理**: `kimi mcp` - MCP 服务器配置管理子命令组
-- **会话管理**: `kimi --session/-S <id>` - 指定会话 ID 恢复会话
+**基础命令**:
+- `kimi` - 启动交互式 Shell 模式
+- `kimi --print` - 非交互式执行
+- `kimi --acp` - Agent Client Protocol 服务器模式
+- `kimi --wire` - 实验性 Wire 协议服务器
+- `kimi --session/-S <id>` - 指定会话 ID 恢复会话
+
+**子命令 (v0.71+)**:
+- `kimi term` - 启动 Toad TUI 终端界面（需要 Python 3.14+）
+- `kimi info` - 显示版本和协议信息（支持 `--json` 格式）
+- `kimi acp` - 运行 ACP 服务器
+- `kimi mcp` - MCP 服务器配置管理子命令组
+
+**新增选项 (v0.69-v0.72)**:
+- `--skills-dir DIR` - 自定义技能目录路径（默认 `~/.kimi/skills`）
+- `--final-message-only` / `--quiet` - Print 模式下仅输出最终消息 (v0.70+)
 
 ### MCP 子命令 (v0.68+)
 
@@ -79,7 +106,7 @@ kimi mcp reset-auth <name>
 kimi mcp remove <name>
 ```
 
-### 核心类
+### 核心类 (v0.69-v0.72 更新)
 
 ```python
 class KimiCLI:
@@ -91,6 +118,7 @@ class KimiCLI:
         thinking: bool = False,
         agent_file: Path | None = None,
         config: Config | None = None,  # v0.68+ 支持 Config 对象
+        skills_dir: Path | None = None,  # v0.69+ 支持自定义技能目录
     ) -> KimiCLI
 
     async def run_shell(self, command: str | None) -> bool  # v0.59+ 重命名
@@ -98,6 +126,24 @@ class KimiCLI:
     async def run_acp(self) -> bool  # v0.59+ 重命名
     async def run_wire_stdio(self) -> bool  # v0.59+ 重命名
     async def run(self, user_input: str) -> AsyncIterator[WireMessage]  # v0.59+ 新增
+
+# v0.69+ 技能系统
+class Skill(BaseModel):
+    """技能信息模型"""
+    name: str
+    description: str
+    dir: Path
+
+    @property
+    def skill_md_file(self) -> Path:
+        """SKILL.md 文件路径"""
+        return self.dir / "SKILL.md"
+
+def discover_skills(skills_dir: Path) -> list[Skill]:
+    """发现指定目录中的所有技能"""
+
+def parse_skill_md(skill_md_file: Path) -> Skill:
+    """解析 SKILL.md 文件"""
 ```
 
 ## 关键依赖与配置
@@ -158,6 +204,7 @@ tool_call_timeout_ms = 60000
 **Shell 级命令**:
 - `/sessions` - 列出和切换会话 (v0.64+)
 - `/mcp` - 显示 MCP 服务器和工具状态 (v0.66+)
+- `/model` - 切换默认模型并重新加载 (v0.71+)
 - `/setup` - 设置 LLM 提供商和模型
 - `/reload` - 重新加载配置
 - `/update` - 检查并自动更新
@@ -170,6 +217,7 @@ tool_call_timeout_ms = 60000
 - `/yolo` - 启用 YOLO 模式
 - `/clear` / `/reset` - 清除上下文
 - `/feedback` - 发送反馈
+- `/skill:<name>` - 按需加载指定技能 (v0.71+)
 
 ## 数据模型
 
@@ -258,11 +306,23 @@ class ApprovalRequest(BaseModel):
 A: 使用对应的命令行参数：
 - Shell 模式（默认）: `kimi`
 - Print 模式: `kimi --print`
-- ACP 模式: `kimi --acp`
+- ACP 模式: `kimi --acp` 或 `kimi acp`
 - Wire 模式: `kimi --wire`
+- **Toad TUI** (v0.71+): `kimi term`
+
+### Q: 如何使用 Toad TUI？
+A: (v0.71+) 运行 `kimi term` 启动 Toad 终端界面。
+要求：Python 3.14+ 且已安装 Toad 依赖包。如遇到依赖缺失错误，运行 `uv sync --python 3.14` 安装。
+
+### Q: 如何创建和使用技能？
+A: (v0.69+)
+1. 在 `~/.kimi/skills/` 或 `~/.claude/skills/` 创建技能目录
+2. 在目录中创建 `SKILL.md` 文件，使用 frontmatter 定义技能
+3. 使用 `/skill:<name>` 斜杠命令按需加载
 
 ### Q: 如何配置自定义模型？
 A: 使用 `--model` 参数指定模型名称，或在配置文件中设置默认模型。
+v0.71+ 可使用 `/model` 斜杠命令动态切换模型。
 
 ### Q: 如何启用调试模式？
 A: 使用 `--debug` 参数启用详细日志输出。
@@ -277,6 +337,9 @@ kimi mcp add my-server --transport http https://example.com/mcp
 kimi mcp add local-tool --transport stdio -- npx my-mcp-server
 ```
 
+### Q: 如何查看版本信息？
+A: (v0.71+) 使用 `kimi info` 查看版本和协议信息，支持 `--json` 格式输出。
+
 ### Q: 配置文件格式从 JSON 改为 TOML 后如何迁移？
 A: v0.66+ 会自动将旧的 JSON 配置迁移到 TOML 格式，原始 JSON 文件会被备份为 `config.json.bak`。
 
@@ -286,6 +349,7 @@ A: v0.68+ ACP 模式支持：
 - 在 ACP 客户端终端运行 Shell 命令
 - 连接到 ACP 客户端管理的 MCP 服务器
 - 斜杠命令广播（单会话模式）
+- ACPKaos 后端支持 (v0.70+)
 
 ### Q: 支持哪些 LLM 提供商？
 A: 支持多种提供商：
@@ -294,16 +358,30 @@ A: 支持多种提供商：
 - anthropic (Anthropic Claude)
 - gemini (Google Gemini)
 - vertexai (Google Vertex AI)
+- _echo (测试/调试用，v0.69+)
+
+### Q: Print 模式如何只输出最终消息？
+A: (v0.70+) 使用 `--final-message-only` 或 `--quiet` 选项：
+```bash
+kimi --print --final-message-only -c "你的问题"
+```
 
 ## 相关文件清单
 
 ### 核心文件
 
-- `cli.py` - CLI 命令行入口
+**CLI 入口 (v0.71+ 重构)**:
+- `cli/__init__.py` - CLI 主入口（原 cli.py）
+- `cli/__main__.py` - Python 模块执行入口
+- `cli/info.py` - `kimi info` 子命令
+- `cli/mcp.py` - MCP 服务器管理子命令组
+
+**应用核心**:
 - `app.py` - 主应用类
 - `config.py` - 配置系统（支持 TOML/JSON）
 - `session.py` - 会话管理（支持命名会话）
-- `mcp.py` - MCP 服务器管理子命令（v0.64+）
+- `skill.py` - **✨ 技能发现和加载** (v0.69+)
+- `toad.py` - **✨ Toad TUI 启动器** (v0.71+)
 - `constant.py` - 常量定义
 - `metadata.py` - 元数据管理
 - `agentspec.py` - Agent 规范处理
@@ -323,21 +401,24 @@ A: 支持多种提供商：
 - `prompts/init.md` - 初始化提示词
 - `prompts/compact.md` - 压缩提示词
 
-## 模块依赖关系
+## 模块依赖关系 (v0.71+ 更新)
 
 ```mermaid
 graph TD
-    A[cli.py] --> B[app.py]
+    A[cli/__init__.py] --> B[app.py]
     A --> C[config.py]
     A --> D[session.py]
-    A --> M[mcp.py]
-    B --> E[soul/kimisoul.py]
-    B --> F[tools/]
-    B --> G[ui/]
-    C --> H[llm.py]
-    D --> I[share.py]
-    E --> J[soul/agent.py]
-    E --> K[soul/toolset.py]
-    E --> L[soul/runtime.py]
-    M --> I
+    A --> E[cli/info.py]
+    A --> F[cli/mcp.py]
+    A --> G[toad.py]
+    B --> H[soul/kimisoul.py]
+    B --> I[tools/]
+    B --> J[ui/]
+    C --> K[llm.py]
+    D --> L[share.py]
+    H --> M[soul/agent.py]
+    H --> N[soul/toolset.py]
+    H --> O[soul/runtime.py]
+    N --> P[skill.py]
+    F --> L
 ```
