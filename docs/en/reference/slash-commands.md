@@ -2,11 +2,15 @@
 
 Slash commands are built-in commands for Kimi CLI, used to control sessions, configuration, and debugging. Enter a command starting with `/` in the input box to trigger.
 
+::: tip Shell mode
+Some slash commands are also available in shell mode, including `/help`, `/exit`, `/version`, `/changelog`, and `/feedback`.
+:::
+
 ## Help and info
 
 ### `/help`
 
-Display help information, listing all available slash commands.
+Display help information. Shows all available slash commands, loaded skills, and keyboard shortcuts in a fullscreen pager. Press `q` to exit.
 
 Aliases: `/h`, `/?`
 
@@ -14,9 +18,11 @@ Aliases: `/h`, `/?`
 
 Display Kimi CLI version number.
 
-### `/release-notes`
+### `/changelog`
 
-Display release notes for recent versions.
+Display the changelog for recent versions.
+
+Alias: `/release-notes`
 
 ### `/feedback`
 
@@ -29,7 +35,7 @@ Open the GitHub Issues page to submit feedback.
 Start the configuration wizard to set up API platform and model.
 
 Configuration flow:
-1. Select an API platform (Kimi for Coding, Moonshot AI Open Platform, etc.)
+1. Select an API platform (Kimi Code, Moonshot AI Open Platform, etc.)
 2. Enter your API key
 3. Select an available model
 
@@ -39,7 +45,7 @@ After configuration, settings are automatically saved to `~/.kimi/config.toml` a
 
 Switch the default model.
 
-When called without arguments, displays an interactive selection interface; you can also specify a model name directly, e.g., `/model kimi-k2`.
+This command first refreshes the available models list from the API platform. When called without arguments, displays an interactive selection interface; you can also specify a model name directly, e.g., `/model kimi-k2`.
 
 After selecting a new model, Kimi CLI will automatically update the configuration file and reload.
 
@@ -65,7 +71,7 @@ Debug information is displayed in a pager, press `q` to exit.
 Display API usage and quota information.
 
 ::: tip
-This command only works with the Kimi for Coding platform.
+This command only works with the Kimi Code platform.
 :::
 
 ### `/mcp`
@@ -122,10 +128,10 @@ This command starts a temporary sub-session to analyze the codebase structure an
 
 ### `/yolo`
 
-Enable YOLO mode, automatically approving all subsequent operations.
+Toggle YOLO mode. When enabled, all operations are automatically approved and a yellow YOLO badge appears in the status bar; enter the command again to disable.
 
 ::: warning Note
-Once enabled, it cannot be disabled in the current session. To restore manual approval, restart Kimi CLI.
+YOLO mode skips all confirmations. Make sure you understand the potential risks.
 :::
 
 ## Command completion

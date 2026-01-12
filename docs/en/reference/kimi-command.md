@@ -65,13 +65,27 @@ The working directory determines the root directory for file operations. The age
 
 When using `--command`, Kimi CLI exits after processing the query (unless `--print` is specified, results are still displayed in interactive mode).
 
+## Loop control
+
+| Option | Description |
+|--------|-------------|
+| `--max-steps-per-turn N` | Maximum steps per turn, overrides `loop_control.max_steps_per_turn` in config file |
+| `--max-retries-per-step N` | Maximum retries per step, overrides `loop_control.max_retries_per_step` in config file |
+| `--max-ralph-iterations N` | Extra automatic iterations after each user message; `0` disables; `-1` is unlimited |
+
+### Ralph loop
+
+[Ralph](https://ghuntley.com/ralph/) is a technique that puts an agent in a loop: the same prompt is fed again and again so the agent can keep iterating one big task.
+
+When `--max-ralph-iterations` is not `0`, Kimi CLI keeps feeding the same prompt back to the agent until an assistant message includes `<safeword>STOP</safeword>` or the iteration limit is reached.
+
 ## UI modes
 
 | Option | Description |
 |--------|-------------|
 | `--print` | Run in print mode (non-interactive), implicitly enables `--yolo` |
 | `--quiet` | Shortcut for `--print --output-format text --final-message-only` |
-| `--acp` | Run in ACP server mode |
+| `--acp` | Run in ACP server mode (deprecated, use `kimi acp` instead) |
 | `--wire` | Run in Wire server mode (experimental) |
 
 The four options are mutually exclusive, only one can be selected. Default is shell mode. See [Print Mode](../customization/print-mode.md) and [Wire Mode](../customization/wire-mode.md) for details.

@@ -65,13 +65,27 @@ kimi [OPTIONS] COMMAND [ARGS]
 
 使用 `--command` 时，Kimi CLI 会处理完查询后退出（除非指定 `--print`，否则仍以交互模式显示结果）。
 
+## 循环控制
+
+| 选项 | 说明 |
+|------|------|
+| `--max-steps-per-turn N` | 单轮最大步数，覆盖配置文件中的 `loop_control.max_steps_per_turn` |
+| `--max-retries-per-step N` | 单步最大重试次数，覆盖配置文件中的 `loop_control.max_retries_per_step` |
+| `--max-ralph-iterations N` | 每个 User 消息后额外自动迭代 `N` 次；`0` 表示关闭；`-1` 表示无限 |
+
+### Ralph 循环
+
+[Ralph](https://ghuntley.com/ralph/) 是一种把 Agent 放进循环的技术：同一条提示词会被反复喂给 Agent，让它围绕一个任务持续迭代。
+
+当 `--max-ralph-iterations` 非 `0` 时，Kimi CLI 会反复把相同的提示词喂给 Agent，直到 Assistant 消息包含 `<safeword>STOP</safeword>` 或达到迭代上限。
+
 ## UI 模式
 
 | 选项 | 说明 |
 |------|------|
 | `--print` | 以 Print 模式运行（非交互式），隐式启用 `--yolo` |
 | `--quiet` | `--print --output-format text --final-message-only` 的快捷方式 |
-| `--acp` | 以 ACP 服务器模式运行 |
+| `--acp` | 以 ACP 服务器模式运行（已弃用，请使用 `kimi acp`） |
 | `--wire` | 以 Wire 服务器模式运行（实验性） |
 
 四个选项互斥，只能选择一个。默认使用 Shell 模式。详见 [Print 模式](../customization/print-mode.md) 和 [Wire 模式](../customization/wire-mode.md)。

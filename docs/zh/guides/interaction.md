@@ -19,6 +19,8 @@ $ git status
 $ npm run build
 ```
 
+Shell 模式也支持部分斜杠命令，包括 `/help`、`/exit`、`/version`、`/changelog` 和 `/feedback`。
+
 ::: warning 注意
 Shell 模式中每个命令独立执行，`cd`、`export` 等改变环境的命令不会影响后续命令。
 :::
@@ -86,6 +88,8 @@ kimi --yolo
 # 或在运行中切换
 /yolo
 ```
+
+开启 YOLO 模式后，底部状态栏会显示黄色的 YOLO 标识。再次输入 `/yolo` 可关闭。
 
 ::: warning 注意
 YOLO 模式会跳过所有确认，请确保你了解可能的风险。建议仅在可控环境中使用。

@@ -19,6 +19,8 @@ $ git status
 $ npm run build
 ```
 
+Shell mode also supports some slash commands, including `/help`, `/exit`, `/version`, `/changelog`, and `/feedback`.
+
 ::: warning Note
 In shell mode, each command executes independently. Commands that change the environment like `cd` or `export` won't affect subsequent commands.
 :::
@@ -86,6 +88,8 @@ kimi --yolo
 # Or toggle during runtime
 /yolo
 ```
+
+When YOLO mode is enabled, a yellow YOLO badge appears in the status bar at the bottom. Enter `/yolo` again to disable it.
 
 ::: warning Note
 YOLO mode skips all confirmations. Make sure you understand the potential risks. It's recommended to only use this in controlled environments.

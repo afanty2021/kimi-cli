@@ -5,7 +5,7 @@ from collections.abc import Awaitable, Callable
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from kosong.message import Message, TextPart
+from kosong.message import Message
 from loguru import logger
 
 import kimi_cli.prompts as prompts
@@ -14,6 +14,7 @@ from kimi_cli.soul.agent import load_agents_md
 from kimi_cli.soul.context import Context
 from kimi_cli.soul.message import system
 from kimi_cli.utils.slashcmd import SlashCommandRegistry
+from kimi_cli.wire.types import TextPart
 
 if TYPE_CHECKING:
     from kimi_cli.soul.kimisoul import KimiSoul
@@ -63,6 +64,10 @@ async def compact(soul: KimiSoul, args: str):
 
 @registry.command
 async def yolo(soul: KimiSoul, args: str):
-    """Enable YOLO mode (auto approve all actions)"""
-    soul.runtime.approval.set_yolo(True)
-    wire_send(TextPart(text="You only live once! All actions will be auto-approved."))
+    """Toggle YOLO mode (auto-approve all actions)"""
+    if soul.runtime.approval.is_yolo():
+        soul.runtime.approval.set_yolo(False)
+        wire_send(TextPart(text="You only die once! Actions will require approval."))
+    else:
+        soul.runtime.approval.set_yolo(True)
+        wire_send(TextPart(text="You only live once! All actions will be auto-approved."))
