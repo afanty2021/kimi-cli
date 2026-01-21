@@ -50,7 +50,7 @@ class Shell:
         if command is not None:
             # run single command and exit
             logger.info("Running agent with command: {command}", command=command)
-            return await self._run_soul_command(command)
+            return await self.run_soul_command(command)
 
         # Start auto-update background task if not disabled
         if get_env_bool("KIMI_CLI_NO_AUTO_UPDATE"):
@@ -70,7 +70,7 @@ class Shell:
             status_provider=lambda: self.soul.status,
             model_capabilities=self.soul.model_capabilities or set(),
             model_name=self.soul.model_name,
-            initial_thinking=isinstance(self.soul, KimiSoul) and self.soul.thinking,
+            thinking=self.soul.thinking or False,
             agent_mode_slash_commands=list(self._available_slash_commands.values()),
             shell_mode_slash_commands=shell_mode_registry.list_commands(),
         ) as prompt_session:
@@ -107,7 +107,7 @@ class Shell:
                         await self._run_slash_command(slash_cmd_call)
                         continue
 
-                    await self._run_soul_command(user_input.content, user_input.thinking)
+                    await self.run_soul_command(user_input.content)
             finally:
                 ensure_tty_sane()
 
@@ -176,7 +176,7 @@ class Shell:
         command = shell_slash_registry.find_command(command_call.name)
         if command is None:
             # the input is a soul-level slash command call
-            await self._run_soul_command(command_call.raw_input)
+            await self.run_soul_command(command_call.raw_input)
             return
 
         logger.debug(
@@ -197,22 +197,14 @@ class Shell:
             console.print(f"[red]Unknown error: {e}[/red]")
             raise  # re-raise unknown error
 
-    async def _run_soul_command(
-        self,
-        user_input: str | list[ContentPart],
-        thinking: bool | None = None,
-    ) -> bool:
+    async def run_soul_command(self, user_input: str | list[ContentPart]) -> bool:
         """
         Run the soul and handle any known exceptions.
 
         Returns:
             bool: Whether the run is successful.
         """
-        logger.info(
-            "Running soul with user input: {user_input}, thinking {thinking}",
-            user_input=user_input,
-            thinking=thinking,
-        )
+        logger.info("Running soul with user input: {user_input}", user_input=user_input)
 
         cancel_event = asyncio.Event()
 
@@ -224,9 +216,6 @@ class Shell:
         remove_sigint = install_sigint_handler(loop, _handler)
 
         try:
-            if isinstance(self.soul, KimiSoul) and thinking is not None:
-                self.soul.set_thinking(thinking)
-
             await run_soul(
                 self.soul,
                 user_input,
@@ -323,7 +312,7 @@ class WelcomeInfoItem:
 
 
 def _print_welcome_info(name: str, info_items: list[WelcomeInfoItem]) -> None:
-    head = Text.from_markup("Welcome to 2026, happy new year!")
+    head = Text.from_markup("Welcome to Kimi CLI!")
     help_text = Text.from_markup("[grey50]Send /help for help information.[/grey50]")
 
     # Use Table for precise width control

@@ -25,6 +25,7 @@ kimi --config '{"default_model": "kimi-for-coding", "providers": {...}, "models"
 | 配置项 | 类型 | 说明 |
 | --- | --- | --- |
 | `default_model` | `string` | 默认使用的模型名称，必须是 `models` 中定义的模型 |
+| `default_thinking` | `boolean` | 默认是否开启 Thinking 模式（默认为 `false`） |
 | `providers` | `table` | API 供应商配置 |
 | `models` | `table` | 模型配置 |
 | `loop_control` | `table` | Agent 循环控制参数 |
@@ -35,6 +36,7 @@ kimi --config '{"default_model": "kimi-for-coding", "providers": {...}, "models"
 
 ```toml
 default_model = "kimi-for-coding"
+default_thinking = false
 
 [providers.kimi-for-coding]
 type = "kimi"
@@ -50,6 +52,7 @@ max_context_size = 262144
 max_steps_per_turn = 100
 max_retries_per_step = 3
 max_ralph_iterations = 0
+reserved_context_size = 50000
 
 [services.moonshot_search]
 base_url = "https://api.kimi.com/coding/v1/search"
@@ -115,6 +118,7 @@ capabilities = ["thinking", "image_in"]
 | `max_steps_per_turn` | `integer` | `100` | 单轮最大步数（别名：`max_steps_per_run`） |
 | `max_retries_per_step` | `integer` | `3` | 单步最大重试次数 |
 | `max_ralph_iterations` | `integer` | `0` | 每个 User 消息后额外自动迭代次数；`0` 表示关闭；`-1` 表示无限 |
+| `reserved_context_size` | `integer` | `50000` | 预留给 LLM 响应生成的 token 数量；当 `context_tokens + reserved_context_size >= max_context_size` 时自动触发压缩 |
 
 ### `services`
 

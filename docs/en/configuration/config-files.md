@@ -25,6 +25,7 @@ The configuration file contains the following top-level configuration items:
 | Item | Type | Description |
 | --- | --- | --- |
 | `default_model` | `string` | Default model name, must be a model defined in `models` |
+| `default_thinking` | `boolean` | Whether to enable thinking mode by default (defaults to `false`) |
 | `providers` | `table` | API provider configuration |
 | `models` | `table` | Model configuration |
 | `loop_control` | `table` | Agent loop control parameters |
@@ -35,6 +36,7 @@ The configuration file contains the following top-level configuration items:
 
 ```toml
 default_model = "kimi-for-coding"
+default_thinking = false
 
 [providers.kimi-for-coding]
 type = "kimi"
@@ -50,6 +52,7 @@ max_context_size = 262144
 max_steps_per_turn = 100
 max_retries_per_step = 3
 max_ralph_iterations = 0
+reserved_context_size = 50000
 
 [services.moonshot_search]
 base_url = "https://api.kimi.com/coding/v1/search"
@@ -115,6 +118,7 @@ capabilities = ["thinking", "image_in"]
 | `max_steps_per_turn` | `integer` | `100` | Maximum steps per turn (alias: `max_steps_per_run`) |
 | `max_retries_per_step` | `integer` | `3` | Maximum retries per step |
 | `max_ralph_iterations` | `integer` | `0` | Extra iterations after each user message; `0` disables; `-1` is unlimited |
+| `reserved_context_size` | `integer` | `50000` | Reserved token count for LLM response generation; auto-compaction triggers when `context_tokens + reserved_context_size >= max_context_size` |
 
 ### `services`
 

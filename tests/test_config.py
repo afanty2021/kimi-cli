@@ -17,6 +17,7 @@ def test_default_config():
     assert config == snapshot(
         Config(
             default_model="",
+            default_thinking=False,
             models={},
             providers={},
             services=Services(),
@@ -29,12 +30,14 @@ def test_default_config_dump():
     assert config.model_dump() == snapshot(
         {
             "default_model": "",
+            "default_thinking": False,
             "models": {},
             "providers": {},
             "loop_control": {
                 "max_steps_per_turn": 100,
                 "max_retries_per_step": 3,
                 "max_ralph_iterations": 0,
+                "reserved_context_size": 50000,
             },
             "services": {"moonshot_search": None, "moonshot_fetch": None},
             "mcp": {"client": {"tool_call_timeout_ms": 60000}},
@@ -60,3 +63,13 @@ def test_load_config_text_invalid():
 def test_load_config_invalid_ralph_iterations():
     with pytest.raises(ConfigError, match="max_ralph_iterations"):
         load_config_from_string('{"loop_control": {"max_ralph_iterations": -2}}')
+
+
+def test_load_config_reserved_context_size():
+    config = load_config_from_string('{"loop_control": {"reserved_context_size": 30000}}')
+    assert config.loop_control.reserved_context_size == 30000
+
+
+def test_load_config_reserved_context_size_too_low():
+    with pytest.raises(ConfigError, match="reserved_context_size"):
+        load_config_from_string('{"loop_control": {"reserved_context_size": 500}}')

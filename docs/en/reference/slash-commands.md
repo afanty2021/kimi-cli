@@ -10,7 +10,7 @@ Some slash commands are also available in shell mode, including `/help`, `/exit`
 
 ### `/help`
 
-Display help information. Shows all available slash commands, loaded skills, and keyboard shortcuts in a fullscreen pager. Press `q` to exit.
+Display help information. Shows keyboard shortcuts, all available slash commands, and loaded skills in a fullscreen pager. Press `q` to exit.
 
 Aliases: `/h`, `/?`
 
@@ -43,11 +43,11 @@ After configuration, settings are automatically saved to `~/.kimi/config.toml` a
 
 ### `/model`
 
-Switch the default model.
+Switch models and thinking mode.
 
-This command first refreshes the available models list from the API platform. When called without arguments, displays an interactive selection interface; you can also specify a model name directly, e.g., `/model kimi-k2`.
+This command first refreshes the available models list from the API platform. When called without arguments, displays an interactive selection interface where you first select a model, then choose whether to enable thinking mode (if the model supports it).
 
-After selecting a new model, Kimi CLI will automatically update the configuration file and reload.
+After selection, Kimi CLI will automatically update the configuration file and reload.
 
 ::: tip
 This command is only available when using the default configuration file. If a configuration was specified via `--config` or `--config-file`, this command cannot be used.
@@ -118,6 +118,17 @@ For example:
 
 You can append additional text after the command, which will be added to the skill prompt. See [Agent Skills](../customization/skills.md) for details.
 
+### `/flow:<name>`
+
+Execute a specific flow skill. Flow skills embed an Agent Flow diagram in `SKILL.md`. After execution, the Agent will start from the `BEGIN` node and process each node according to the flow diagram definition until reaching the `END` node.
+
+For example:
+
+- `/flow:code-review`: Execute code review workflow
+- `/flow:release`: Execute release workflow
+
+See [Agent Skills](../customization/skills.md#flow-skills) for details.
+
 ## Others
 
 ### `/init`
@@ -136,6 +147,6 @@ YOLO mode skips all confirmations. Make sure you understand the potential risks.
 
 ## Command completion
 
-After typing `/` in the input box, a list of available commands is automatically displayed. Continue typing to filter commands, press Enter to select.
+After typing `/` in the input box, a list of available commands is automatically displayed. Continue typing to filter commands with fuzzy matching support, press Enter to select.
 
-Commands support alias matching, for example typing `/h` will match `/help`.
+For example, typing `/ses` will match `/sessions`, and `/clog` will match `/changelog`. Command aliases are also supported, such as typing `/h` to match `/help`.

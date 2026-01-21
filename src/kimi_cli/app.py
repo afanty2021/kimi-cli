@@ -17,7 +17,7 @@ from kimi_cli.config import Config, LLMModel, LLMProvider, load_config
 from kimi_cli.llm import augment_provider_with_env_vars, create_llm
 from kimi_cli.session import Session
 from kimi_cli.share import get_share_dir
-from kimi_cli.soul import LLMNotSet, LLMNotSupported, run_soul
+from kimi_cli.soul import run_soul
 from kimi_cli.soul.agent import Runtime, load_agent
 from kimi_cli.soul.context import Context
 from kimi_cli.soul.kimisoul import KimiSoul
@@ -50,13 +50,17 @@ class KimiCLI:
     async def create(
         session: Session,
         *,
-        yolo: bool = False,
-        mcp_configs: list[MCPConfig] | list[dict[str, Any]] | None = None,
+        # Basic configuration
         config: Config | Path | None = None,
         model_name: str | None = None,
-        thinking: bool = False,
+        thinking: bool | None = None,
+        # Run mode
+        yolo: bool = False,
+        # Extensions
         agent_file: Path | None = None,
-        skills_dir: Path | None = None,
+        mcp_configs: list[MCPConfig] | list[dict[str, Any]] | None = None,
+        skills_dir: KaosPath | None = None,
+        # Loop control
         max_steps_per_turn: int | None = None,
         max_retries_per_step: int | None = None,
         max_ralph_iterations: int | None = None,
@@ -66,15 +70,16 @@ class KimiCLI:
 
         Args:
             session (Session): A session created by `Session.create` or `Session.continue_`.
-            yolo (bool, optional): Approve all actions without confirmation. Defaults to False.
-            mcp_configs (list[MCPConfig | dict[str, Any]] | None, optional): MCP configs to load
-                MCP tools from. Defaults to None.
             config (Config | Path | None, optional): Configuration to use, or path to config file.
                 Defaults to None.
             model_name (str | None, optional): Name of the model to use. Defaults to None.
-            thinking (bool, optional): Whether to enable thinking mode. Defaults to False.
+            thinking (bool | None, optional): Whether to enable thinking mode. Defaults to None.
+            yolo (bool, optional): Approve all actions without confirmation. Defaults to False.
             agent_file (Path | None, optional): Path to the agent file. Defaults to None.
-            skills_dir (Path | None, optional): Path to the skills directory. Defaults to None.
+            mcp_configs (list[MCPConfig | dict[str, Any]] | None, optional): MCP configs to load
+                MCP tools from. Defaults to None.
+            skills_dir (KaosPath | None, optional): Override skills directory discovery. Defaults
+                to None.
             max_steps_per_turn (int | None, optional): Maximum number of steps in one turn.
                 Defaults to None.
             max_retries_per_step (int | None, optional): Maximum number of retries in one step.
@@ -122,10 +127,14 @@ class KimiCLI:
         assert model is not None
         env_overrides = augment_provider_with_env_vars(provider, model)
 
-        llm = create_llm(provider, model, session_id=session.id)
+        # determine thinking mode
+        thinking = config.default_thinking if thinking is None else thinking
+
+        llm = create_llm(provider, model, thinking=thinking, session_id=session.id)
         if llm is not None:
             logger.info("Using LLM provider: {provider}", provider=provider)
             logger.info("Using LLM model: {model}", model=model)
+            logger.info("Thinking mode: {thinking}", thinking=thinking)
 
         runtime = await Runtime.create(config, llm, session, yolo, skills_dir)
 
@@ -137,10 +146,6 @@ class KimiCLI:
         await context.restore()
 
         soul = KimiSoul(agent, context=context)
-        try:
-            soul.set_thinking(thinking)
-        except (LLMNotSet, LLMNotSupported) as e:
-            logger.warning("Failed to enable thinking mode: {error}", error=e)
         return KimiCLI(soul, runtime, env_overrides)
 
     def __init__(

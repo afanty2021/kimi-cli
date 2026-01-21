@@ -55,6 +55,9 @@ class LoopControl(BaseModel):
     """Maximum number of retries in one step"""
     max_ralph_iterations: int = Field(default=0, ge=-1)
     """Extra iterations after the first turn in Ralph mode. Use -1 for unlimited."""
+    reserved_context_size: int = Field(default=50_000, ge=1000)
+    """Reserved token count for LLM response generation. Auto-compaction triggers when
+    context_tokens + reserved_context_size >= max_context_size. Default is 50000."""
 
 
 class MoonshotSearchConfig(BaseModel):
@@ -120,6 +123,7 @@ class Config(BaseModel):
         exclude=True,
     )
     default_model: str = Field(default="", description="Default model to use")
+    default_thinking: bool = Field(default=False, description="Default thinking mode")
     models: dict[str, LLMModel] = Field(default_factory=dict, description="List of LLM models")
     providers: dict[str, LLMProvider] = Field(
         default_factory=dict, description="List of LLM providers"
