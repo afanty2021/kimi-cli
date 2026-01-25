@@ -5,7 +5,6 @@ from collections.abc import Awaitable, Callable, Sequence
 from contextlib import suppress
 from dataclasses import dataclass
 from functools import partial
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
 import kosong
@@ -41,6 +40,7 @@ from kimi_cli.tools.dmail import NAME as SendDMail_NAME
 from kimi_cli.tools.utils import ToolRejectedError
 from kimi_cli.utils.logging import logger
 from kimi_cli.utils.slashcmd import SlashCommand, parse_slash_command_call
+from kimi_cli.wire.file import WireFile
 from kimi_cli.wire.types import (
     ApprovalRequest,
     ApprovalResponse,
@@ -168,7 +168,7 @@ class KimiSoul:
         return 0.0
 
     @property
-    def wire_file(self) -> Path:
+    def wire_file(self) -> WireFile:
         return self._runtime.session.wire_file
 
     async def _checkpoint(self):
@@ -225,7 +225,7 @@ class KimiSoul:
         seen_names = {cmd.name for cmd in commands}
 
         for skill in self._runtime.skills.values():
-            if skill.type != "standard":
+            if skill.type not in ("standard", "flow"):
                 continue
             name = f"{SKILL_COMMAND_PREFIX}{skill.name}"
             if name in seen_names:

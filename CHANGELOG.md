@@ -11,6 +11,43 @@ Only write entries that are worth mentioning to users.
 
 ## Unreleased
 
+## 0.87 (2026-01-25)
+
+- Shell: Fix Markdown rendering error when HTML blocks appear outside any element
+- Skills: Add more user-level and project-level skills directory candidates
+- Core: Improve system prompt guidance for media file generation and processing tasks
+- Shell: Fix image pasting from clipboard on macOS
+
+## 0.86 (2026-01-24)
+
+- Build: Fix binary builds
+
+## 0.85 (2026-01-24)
+
+- Shell: Cache pasted images to disk for persistence across sessions
+- Shell: Deduplicate cached attachments based on content hash
+- Shell: Fix display of image/audio/video attachments in message history
+- Tool: Use file path as media identifier in `ReadMediaFile` for better traceability
+- Tool: Fix some MP4 files not being recognized as videos
+- Shell: Handle Ctrl-C during slash command execution
+- Shell: Fix shlex parsing error in shell mode when input contains invalid shell syntax
+- Shell: Fix stderr output from MCP servers and third-party libraries polluting shell UI
+- Wire: Graceful shutdown with proper cleanup of pending requests when connection closes or Ctrl-C is received
+
+## 0.84 (2026-01-22)
+
+- Build: Add cross-platform standalone binary builds for Windows, macOS (with code signing and notarization), and Linux (x86_64 and ARM64)
+- Shell: Fix slash command autocomplete showing suggestions for exact command/alias matches
+- Tool: Treat SVG files as text instead of images
+- Flow: Support D2 markdown block strings (`|md` syntax) for multiline node labels in flow skills
+- Core: Fix possible "event loop is closed" error after running `/reload`, `/setup`, or `/clear`
+- Core: Fix panic when `/clear` is used in a continued session
+
+## 0.83 (2026-01-21)
+
+- Tool: Add `ReadMediaFile` tool for reading image/video files; `ReadFile` now focuses on text files only
+- Skills: Flow skills now also register as `/skill:<skill-name>` commands (in addition to `/flow:<skill-name>`)
+
 ## 0.82 (2026-01-21)
 
 - Tool: Allow `WriteFile` and `StrReplaceFile` tools to edit/write files outside the working directory when using absolute paths

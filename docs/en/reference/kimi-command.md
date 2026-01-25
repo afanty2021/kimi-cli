@@ -45,7 +45,7 @@ kimi [OPTIONS] COMMAND [ARGS]
 |--------|-------|-------------|
 | `--work-dir PATH` | `-w` | Specify working directory (default current directory) |
 
-The working directory determines the root directory for file operations. The agent can only read and write files within this directory.
+The working directory determines the root directory for file operations. Relative paths work within the working directory; absolute paths are required to access files outside it.
 
 ## Session management
 
@@ -136,9 +136,9 @@ Thinking mode requires model support. If not specified, uses the last session's 
 
 | Option | Description |
 |--------|-------------|
-| `--skills-dir PATH` | Specify skills directory (default `~/.kimi/skills`) |
+| `--skills-dir PATH` | Specify skills directory, skipping auto-discovery |
 
-See [Agent Skills](../customization/skills.md) for details.
+When not specified, Kimi CLI automatically discovers user-level and project-level skills directories in priority order. See [Agent Skills](../customization/skills.md) for details.
 
 ## Subcommands
 

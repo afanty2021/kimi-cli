@@ -10,7 +10,7 @@ from inline_snapshot import snapshot
 def test_pyinstaller_datas():
     from kimi_cli.utils.pyinstaller import datas
 
-    project_root = Path(__file__).parent.parent
+    project_root = Path(__file__).parent.parent.parent
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
     site_packages = f".venv/lib/python{python_version}/site-packages"
     datas = [
@@ -97,6 +97,10 @@ def test_pyinstaller_datas():
                 "kimi_cli/tools/file",
             ),
             (
+                "src/kimi_cli/tools/file/read_media.md",
+                "kimi_cli/tools/file",
+            ),
+            (
                 "src/kimi_cli/tools/file/replace.md",
                 "kimi_cli/tools/file",
             ),
@@ -140,6 +144,7 @@ def test_pyinstaller_hiddenimports():
             "kimi_cli.tools.file.glob",
             "kimi_cli.tools.file.grep_local",
             "kimi_cli.tools.file.read",
+            "kimi_cli.tools.file.read_media",
             "kimi_cli.tools.file.replace",
             "kimi_cli.tools.file.utils",
             "kimi_cli.tools.file.write",

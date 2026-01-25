@@ -21,16 +21,19 @@ Kimi CLI 采用分层加载机制发现 Skills，按以下优先级加载（后�
 存放在用户主目录中，在所有项目中生效。Kimi CLI 会按优先级检查以下目录，使用第一个存在的目录：
 
 1. `~/.config/agents/skills/`（推荐）
-2. `~/.kimi/skills/`（兼容旧版）
-3. `~/.claude/skills/`（兼容 Claude）
+2. `~/.agents/skills/`
+3. `~/.kimi/skills/`
+4. `~/.claude/skills/`
+5. `~/.codex/skills/`
 
 **项目级 Skills**
 
 存放在项目目录中，仅在该项目工作目录下生效。Kimi CLI 会按优先级检查以下目录，使用第一个存在的目录：
 
 1. `.agents/skills/`（推荐）
-2. `.kimi/skills/`（兼容旧版）
-3. `.claude/skills/`（兼容 Claude）
+2. `.kimi/skills/`
+3. `.claude/skills/`
+4. `.codex/skills/`
 
 你也可以通过 `--skills-dir` 参数指定其他目录，此时会跳过用户级和项目级 Skills 的发现：
 
@@ -237,11 +240,30 @@ D: 开始实现
 D -> END
 ```
 
-**执行 Flow Skill**
+对于多行标签，可以使用 D2 的块字符串语法（`|md`）：
 
-```sh
-# 在 Kimi CLI 中执行
-/flow:code-review
+```
+BEGIN -> step -> END
+step: |md
+  # 详细指引
+
+  1. 分析代码结构
+  2. 检查潜在问题
+  3. 生成报告
+|
 ```
 
-执行后，Agent 会从 `BEGIN` 节点开始，按照流程图定义依次处理每个节点，直到到达 `END` 节点。
+**执行 Flow Skill**
+
+Flow Skill 可以通过两种方式调用：
+
+- `/flow:<name>`：执行流程，Agent 会从 `BEGIN` 节点开始，按照流程图定义依次处理每个节点，直到到达 `END` 节点
+- `/skill:<name>`：与普通 Skill 一样，将 `SKILL.md` 内容作为提示词发送给 Agent（不自动执行流程）
+
+```sh
+# 执行流程
+/flow:code-review
+
+# 作为普通 Skill 加载
+/skill:code-review
+```

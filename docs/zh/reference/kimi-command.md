@@ -45,7 +45,7 @@ kimi [OPTIONS] COMMAND [ARGS]
 |------|------|------|
 | `--work-dir PATH` | `-w` | 指定工作目录（默认当前目录） |
 
-工作目录决定了文件操作的根目录，Agent 只能在此目录内读写文件。
+工作目录决定了文件操作的根目录。在工作目录内可使用相对路径，操作工作目录外的文件需使用绝对路径。
 
 ## 会话管理
 
@@ -136,9 +136,9 @@ Thinking 模式需要模型支持。如果不指定，使用上次会话的设�
 
 | 选项 | 说明 |
 |------|------|
-| `--skills-dir PATH` | 指定 skills 目录（默认 `~/.kimi/skills`） |
+| `--skills-dir PATH` | 指定 skills 目录，跳过自动发现 |
 
-详见 [Agent Skills](../customization/skills.md)。
+不指定时，Kimi CLI 会按优先级自动发现用户级和项目级 Skills 目录。详见 [Agent Skills](../customization/skills.md)。
 
 ## 子命令
 

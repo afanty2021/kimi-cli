@@ -21,16 +21,19 @@ Skills shipped with the package, providing basic capabilities.
 Stored in the user's home directory, effective across all projects. Kimi CLI checks the following directories in priority order and uses the first one that exists:
 
 1. `~/.config/agents/skills/` (recommended)
-2. `~/.kimi/skills/` (legacy compatibility)
-3. `~/.claude/skills/` (Claude compatibility)
+2. `~/.agents/skills/`
+3. `~/.kimi/skills/`
+4. `~/.claude/skills/`
+5. `~/.codex/skills/`
 
 **Project-level skills**
 
 Stored in the project directory, only effective within that project's working directory. Kimi CLI checks the following directories in priority order and uses the first one that exists:
 
 1. `.agents/skills/` (recommended)
-2. `.kimi/skills/` (legacy compatibility)
-3. `.claude/skills/` (Claude compatibility)
+2. `.kimi/skills/`
+3. `.claude/skills/`
+4. `.codex/skills/`
 
 You can also specify other directories with the `--skills-dir` flag, which skips user-level and project-level skill discovery:
 
@@ -237,11 +240,30 @@ D: Start implementation
 D -> END
 ```
 
-**Executing a flow skill**
+For multiline labels, you can use D2's block string syntax (`|md`):
 
-```sh
-# Execute in Kimi CLI
-/flow:code-review
+```
+BEGIN -> step -> END
+step: |md
+  # Detailed instructions
+
+  1. Analyze code structure
+  2. Check for potential issues
+  3. Generate report
+|
 ```
 
-After execution, the Agent will start from the `BEGIN` node and process each node according to the flow diagram definition until reaching the `END` node.
+**Executing a flow skill**
+
+Flow skills can be invoked in two ways:
+
+- `/flow:<name>`: Execute the flow. The Agent will start from the `BEGIN` node and process each node according to the flow diagram definition until reaching the `END` node
+- `/skill:<name>`: Like a standard skill, sends the `SKILL.md` content to the Agent as a prompt (does not automatically execute the flow)
+
+```sh
+# Execute the flow
+/flow:code-review
+
+# Load as a standard skill
+/skill:code-review
+```
