@@ -1,8 +1,31 @@
 # 变更记录
 
-本页面记录 Kimi CLI 各版本的变更内容。
+本页面记录 Kimi Code CLI 各版本的变更内容。
 
 ## 未发布
+
+## 1.3 (2026-01-28)
+
+- Auth：修复 Agent 轮次期间的认证问题
+- Tool：为 `ReadMediaFile` 中的媒体内容添加描述性标签，提高路径可追溯性
+
+## 1.2 (2026-01-27)
+
+- UI: 显示 `kimi-for-coding` 模型的说明
+
+## 1.1 (2026-01-27)
+
+- LLM: 修复 `kimi-for-coding` 模型的能力
+
+## 1.0 (2026-01-27)
+
+- Shell：添加 `/login` 和 `/logout` 斜杠命令，用于登录和登出
+- CLI：添加 `kimi login` 和 `kimi logout` 子命令
+- Core：修复子 Agent 审批请求处理问题
+
+## 0.88 (2026-01-26)
+
+- MCP：移除连接 MCP 服务器时的 `Mcp-Session-Id` header 以修复兼容性问题
 
 ## 0.87 (2026-01-25)
 
@@ -98,7 +121,7 @@
 ## 0.75 (2026-01-09)
 
 - Tool：改进 `ReadFile` 工具描述
-- Skills：添加内置 `kimi-cli-help` Skill，解答 Kimi CLI 使用和配置问题
+- Skills：添加内置 `kimi-cli-help` Skill，解答 Kimi Code CLI 使用和配置问题
 
 ## 0.74 (2026-01-09)
 
@@ -174,7 +197,7 @@
 - Lib：添加 `KimiToolset.load_mcp_tools` 方法，加载 MCP 工具
 - Lib：将 `MCPTool` 从 `kimi_cli.tools.mcp` 移至 `kimi_cli.soul.toolset`
 - Lib：添加 `InvalidToolError`、`MCPConfigError` 和 `MCPRuntimeError` 异常类
-- Lib：使 Kimi CLI 详细异常类扩展 `ValueError` 或 `RuntimeError`
+- Lib：使 Kimi Code CLI 详细异常类扩展 `ValueError` 或 `RuntimeError`
 - Lib：`KimiCLI.create` 和 `load_agent` 的 `mcp_configs` 参数支持传入验证后的 `list[fastmcp.mcp_config.MCPConfig]`
 - Lib：修复 `KimiCLI.create`、`load_agent`、`KimiToolset.load_tools` 和 `KimiToolset.load_mcp_tools` 的异常抛出
 - LLM：添加 `vertexai` 供应商类型，支持 Vertex AI

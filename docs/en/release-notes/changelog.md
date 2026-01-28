@@ -1,8 +1,31 @@
 # Changelog
 
-This page documents the changes in each Kimi CLI release.
+This page documents the changes in each Kimi Code CLI release.
 
 ## Unreleased
+
+## 1.3 (2026-01-28)
+
+- Auth: Fix authentication issue during agent turns
+- Tool: Wrap media content with descriptive tags in `ReadMediaFile` for better path traceability
+
+## 1.2 (2026-01-27)
+
+- UI: Show description for `kimi-for-coding` model
+
+## 1.1 (2026-01-27)
+
+- LLM: Fix `kimi-for-coding` model's capabilities
+
+## 1.0 (2026-01-27)
+
+- Shell: Add `/login` and `/logout` slash commands for login and logout
+- CLI: Add `kimi login` and `kimi logout` subcommands
+- Core: Fix subagent approval request handling
+
+## 0.88 (2026-01-26)
+
+- MCP: Remove `Mcp-Session-Id` header when connecting to MCP servers to fix compatibility
 
 ## 0.87 (2026-01-25)
 
@@ -98,7 +121,7 @@ This page documents the changes in each Kimi CLI release.
 ## 0.75 (2026-01-09)
 
 - Tool: Improve `ReadFile` tool description
-- Skills: Add built-in `kimi-cli-help` skill to answer Kimi CLI usage and configuration questions
+- Skills: Add built-in `kimi-cli-help` skill to answer Kimi Code CLI usage and configuration questions
 
 ## 0.74 (2026-01-09)
 
@@ -174,7 +197,7 @@ This page documents the changes in each Kimi CLI release.
 - Lib: Add `KimiToolset.load_mcp_tools` method to load MCP tools
 - Lib: Move `MCPTool` from `kimi_cli.tools.mcp` to `kimi_cli.soul.toolset`
 - Lib: Add `InvalidToolError`, `MCPConfigError` and `MCPRuntimeError`
-- Lib: Make the detailed Kimi CLI exception classes extend `ValueError` or `RuntimeError`
+- Lib: Make the detailed Kimi Code CLI exception classes extend `ValueError` or `RuntimeError`
 - Lib: Allow passing validated `list[fastmcp.mcp_config.MCPConfig]` as `mcp_configs` for `KimiCLI.create` and `load_agent`
 - Lib: Fix exception raising for `KimiCLI.create`, `load_agent`, `KimiToolset.load_tools` and `KimiToolset.load_mcp_tools`
 - LLM: Add provider type `vertexai` to support Vertex AI

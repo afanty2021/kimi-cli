@@ -59,7 +59,7 @@ class Shell:
         else:
             self._start_background_task(self._auto_update())
 
-        _print_welcome_info(self.soul.name or "Kimi CLI", self._welcome_info)
+        _print_welcome_info(self.soul.name or "Kimi Code CLI", self._welcome_info)
 
         if isinstance(self.soul, KimiSoul):
             await replay_recent_history(
@@ -243,7 +243,7 @@ class Shell:
             return True
         except LLMNotSet:
             logger.exception("LLM not set:")
-            console.print('[red]LLM not set, send "/setup" to configure[/red]')
+            console.print('[red]LLM not set, send "/login" to login[/red]')
         except LLMNotSupported as e:
             # actually unsupported input/mode should already be blocked by prompt session
             logger.exception("LLM not supported:")
@@ -251,7 +251,7 @@ class Shell:
         except ChatProviderError as e:
             logger.exception("LLM provider error:")
             if isinstance(e, APIStatusError) and e.status_code == 401:
-                console.print("[red]Authorization failed, please check your API key[/red]")
+                console.print("[red]Authorization failed, please check your login status[/red]")
             elif isinstance(e, APIStatusError) and e.status_code == 402:
                 console.print("[red]Membership expired, please renew your plan[/red]")
             elif isinstance(e, APIStatusError) and e.status_code == 403:
@@ -325,7 +325,7 @@ class WelcomeInfoItem:
 
 
 def _print_welcome_info(name: str, info_items: list[WelcomeInfoItem]) -> None:
-    head = Text.from_markup("Welcome to Kimi CLI!")
+    head = Text.from_markup("Welcome to Kimi Code CLI!")
     help_text = Text.from_markup("[grey50]Send /help for help information.[/grey50]")
 
     # Use Table for precise width control
