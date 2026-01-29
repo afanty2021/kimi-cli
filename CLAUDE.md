@@ -2,7 +2,10 @@
 
 ## 变更记录 (Changelog)
 
-- **2026-01-25**: 全面更新至 v0.87 - Monorepo 架构、模块化 CLI、技能系统增强、测试完善
+- **2026-01-28**: 更新至 v1.3 - OAuth 登录/登出、媒体文件标签包装、Agent 轮次认证修复
+- **2026-01-27**: 更新至 v1.2 - 模型描述显示、v1.1 - kimi-for-coding 能力修复
+- **2026-01-27**: 更新至 v1.0 - OAuth 登录系统、子 Agent 审批修复
+- **2026-01-25**: 更新至 v0.87 - Monorepo 架构、模块化 CLI、技能系统增强、测试完善
 - **2026-01-21**: 更新至 v0.82 - 视频上传支持、工作目录外文件操作、保留上下文大小配置
 - **2026-01-04**: 重大更新至 v0.72 - Python 3.14 支持、CLI 模块化、Toad TUI、技能系统、斜杠命令增强
 - **2025-12-25**: 重大更新至 v0.68 - MCP OAuth 支持、TOML 配置、ACP 增强、斜杠命令改进
@@ -22,8 +25,10 @@ Kimi CLI 是一个强大的交互式命令行 AI 代理，专为软件开发者�
 - **时间旅行**: DMail 系统支持邮件到检查点的消息传递
 - **斜杠命令**: Shell 级和 Soul 级命令系统（/model、/skill:<name> 等）
 - **技能系统**: 支持 SKILL.md 技能发现和加载
-- **多模态支持**: 视频内容输入支持
-- **CLI 子命令**: 模块化 CLI 架构，支持 `kimi info`、`kimi term`、`kimi acp` 等子命令
+- **Flow Skills**: 嵌入式 Agent Flow（Mermaid/D2）流程图技能
+- **多模态支持**: 图片、视频内容输入支持
+- **CLI 子命令**: 模块化 CLI 架构，支持 `kimi info`、`kimi term`、`kimi acp`、`kimi login/logout` 等子命令
+- **OAuth 登录**: Kimi 账户 OAuth 授权登录/登出 (v1.0+)
 
 ## 架构总览
 
@@ -37,7 +42,10 @@ graph TD
     A --> E["工具系统"];
     A --> F["用户界面层"];
     A --> G["配置与会话"];
-    A --> H["Monorepo 包"];
+    A --> H["认证系统"];
+    A --> I["技能系统"];
+    A --> J["Wire 协议"];
+    A --> K["Monorepo 包"];
 
     B --> B1["cli/__init__.py"];
     C --> C1["app.py"];
@@ -48,19 +56,30 @@ graph TD
     E --> E2["Shell 工具"];
     E --> E3["Web 工具"];
     E --> E4["任务管理"];
+    E --> E5["媒体读取"];
     F --> F1["Shell 界面"];
     F --> F2["Print 模式"];
     F --> F3["ACP 协议"];
-    F --> F4["Wire 协议"];
-    H --> H1["kaos 包"];
-    H --> H2["kosong 包"];
-    H --> H3["kimi-code 包"];
-    H --> H4["kimi-sdk 包"];
+    H --> H1["OAuth 授权"];
+    H --> H2["平台管理"];
+    I --> I1["技能发现"];
+    I --> I2["Flow 解析"];
+    I --> I3["Mermaid/D2"];
+    J --> J1["Wire 服务器"];
+    J --> J2["JSON-RPC"];
+    J --> J3["文件后端"];
+    K --> K1["kaos 包"];
+    K --> K2["kosong 包"];
+    K --> K3["kimi-code 包"];
+    K --> K4["kimi-sdk 包"];
 
     click D1 "./src/kimi_cli/soul/CLAUDE.md" "查看 Soul 模块文档"
     click D2 "./src/kimi_cli/agents/CLAUDE.md" "查看 Agent 配置文档"
     click E1 "./src/kimi_cli/tools/CLAUDE.md" "查看工具系统文档"
     click F1 "./src/kimi_cli/ui/CLAUDE.md" "查看 UI 模块文档"
+    click H1 "./src/kimi_cli/auth/CLAUDE.md" "查看 Auth 模块文档"
+    click I1 "./src/kimi_cli/skill/CLAUDE.md" "查看 Skill 模块文档"
+    click J1 "./src/kimi_cli/wire/CLAUDE.md" "查看 Wire 模块文档"
 ```
 
 ## 模块索引
@@ -68,12 +87,14 @@ graph TD
 | 模块 | 路径 | 职责 | 状态 |
 |------|------|------|------|
 | **主应用** | `src/kimi_cli/` | CLI 入口、应用生命周期、会话管理 | ✅ 完整 |
-| **CLI 命令** | `src/kimi_cli/cli/` | 模块化 CLI 子命令（info、mcp、term、acp） | ✅ 完整 |
+| **CLI 命令** | `src/kimi_cli/cli/` | 模块化 CLI 子命令（info、mcp、term、acp、login、logout） | ✅ 完整 |
 | **Soul 引擎** | `src/kimi_cli/soul/` | AI 推理引擎、Agent 执行、消息处理 | ✅ 完整 |
-| **工具系统** | `src/kimi_cli/tools/` | 文件操作、Shell、Web、任务、待办等工具 | ✅ 完整 |
-| **用户界面** | `src/kimi_cli/ui/` | Shell、Print、ACP、Wire 等界面 | ✅ 完整 |
+| **工具系统** | `src/kimi_cli/tools/` | 文件操作、Shell、Web、任务、待办、媒体读取等工具 | ✅ 完整 |
+| **用户界面** | `src/kimi_cli/ui/` | Shell、Print、ACP 等界面 | ✅ 完整 |
+| **认证系统** | `src/kimi_cli/auth/` | OAuth 授权、平台管理、令牌刷新 (v1.0+) | ✅ 完整 |
+| **技能系统** | `src/kimi_cli/skill/` | 技能发现、Flow 解析（Mermaid/D2） | ✅ 完整 |
+| **Wire 协议** | `src/kimi_cli/wire/` | Wire 服务器、JSON-RPC、文件后端 | ✅ 完整 |
 | **Agent 配置** | `src/kimi_cli/agents/` | Agent 规范定义和加载 | ✅ 完整 |
-| **Wire 协议** | `src/kimi_cli/wire/` | 工具描述和消息协议 | ✅ 完整 |
 | **实用工具** | `src/kimi_cli/utils/` | 通用工具函数和助手 | ✅ 完整 |
 | **Kaos 包** | `packages/kaos/` | 文件系统和 shell 访问抽象层 | ✅ 完整 |
 | **Kosong 包** | `packages/kosong/` | LLM 抽象层 | ✅ 完整 |
@@ -104,7 +125,7 @@ graph TD
   - 支持 `~/.kimi/skills` 技能目录访问
 - **依赖**: aiofiles, asyncssh
 
-#### kosong (v0.40.0)
+#### kosong (v0.41.0)
 - **位置**: `packages/kosong/`
 - **功能**: LLM 抽象层
 - **特性**:
@@ -114,13 +135,13 @@ graph TD
   - 测试快照和 API 兼容性测试
 - **依赖**: anthropic, google-genai, openai, pydantic, mcp
 
-#### kimi-code (v0.87)
+#### kimi-code (v1.3)
 - **位置**: `packages/kimi-code/`
 - **功能**: CLI 发行包
 - **特性**:
   - 提供 kimi 和 kimi-code 命令行入口
   - 依赖 kimi-cli 核心包
-- **依赖**: kimi-cli==0.87
+- **依赖**: kimi-cli==1.3
 
 #### kimi-sdk (v0.2.1)
 - **位置**: `sdks/kimi-sdk/`
@@ -137,6 +158,7 @@ graph TD
 - **prompt-toolkit**: 交互式命令行界面
 - **Pillow**: 图像处理支持
 - **Toad**: 终端 TUI 框架（v0.71+，需 Python 3.14+）
+- **keyring**: 安全令牌存储（v1.0+）
 
 ### 工具集成
 
@@ -179,6 +201,8 @@ kimi acp              # 运行 ACP 服务器
 kimi mcp              # 管理 MCP 配置
 kimi info             # 显示版本信息（支持 --json）
 kimi term             # 启动 Toad TUI
+kimi login            # Kimi 账户登录 (v1.0+)
+kimi logout           # Kimi 账户登出 (v1.0+)
 ```
 
 ### 开发环境设置
@@ -232,6 +256,32 @@ cd sdks/kimi-sdk && uv run pytest
 - **MCP 配置**: `kimi mcp` 子命令管理（~/.kimi/mcp.json）
 - **自动迁移**: 自动将旧的 JSON 配置迁移到 TOML 格式
 
+### OAuth 登录系统 (v1.0+)
+
+**Kimi 账户登录** 提供便捷的 OAuth 授权方式：
+
+```bash
+# 登录 Kimi 账户
+kimi login
+
+# 登出 Kimi 账户
+kimi logout
+
+# JSON 事件输出（用于脚本集成）
+kimi login --json
+kimi logout --json
+```
+
+**斜杠命令**:
+- `/login` - 在 Shell 模式下登录
+- `/logout` - 在 Shell 模式下登出
+
+**特性**:
+- 浏览器自动打开授权页面
+- 令牌安全存储（keyring 优先，文件后备）
+- 自动令牌刷新
+- 多平台支持（Kimi Code、Moonshot AI）
+
 ### 技能系统
 
 **技能（Skills）** 是可重用的 AI 能力，通过 SKILL.md 文件定义：
@@ -240,6 +290,10 @@ cd sdks/kimi-sdk && uv run pytest
 # 技能目录位置
 ~/.kimi/skills/        # Kimi CLI 技能目录
 ~/.claude/skills/       # Claude Code 兼容技能目录
+~/.config/agents/skills/  # 用户级技能目录（优先）
+./agents/skills/        # 项目级技能目录
+./.kimi/skills/
+./.claude/skills/
 
 # 技能目录结构
 ~/.kimi/skills/
@@ -254,6 +308,7 @@ cd sdks/kimi-sdk && uv run pytest
 ---
 name: My Skill
 description: 技能描述
+type: standard  # 或 "flow"（用于 Flow Skills）
 ---
 
 # 技能指令
@@ -261,9 +316,15 @@ description: 技能描述
 这里是技能的具体内容，AI 会按需加载这些指令。
 ```
 
+**Flow Skills** (v0.81+):
+- 支持 Mermaid 和 D2 流程图格式
+- 使用 `/flow:<skill-name>` 或 `/skill:<skill-name>` 调用
+- 流程图定义工作流程和决策节点
+
 **使用技能**:
 - 通过 `/skill:<name>` 斜杠命令按需加载
-- 技能自动发现和索引
+- 通过 `/flow:<name>` 调用 Flow Skills
+- 技能自动发现和索引（内置 → 用户 → 项目）
 - 支持自定义技能目录（`--skills-dir`）
 
 ## 测试策略
@@ -368,12 +429,45 @@ make ai-test
 3. 实现专门的子 Agent
 4. 编写配置验证和测试
 
-## 最新功能亮点 (v0.87)
+#### 新技能开发
+
+1. 在技能目录创建技能文件夹
+2. 编写 SKILL.md 文件（frontmatter + 内容）
+3. 对于 Flow Skills，嵌入 Mermaid/D2 流程图
+4. 使用 `/skill:<name>` 或 `/flow:<name>` 测试
+
+## 最新功能亮点 (v1.3)
+
+### OAuth 登录系统 (v1.0+)
+- 浏览器授权：自动打开浏览器进行 OAuth 授权
+- 安全存储：支持 keyring 和文件存储
+- 令牌刷新：自动刷新过期的访问令牌
+- 平台管理：支持 Kimi Code 和 Moonshot AI 平台
+- 斜杠命令：`/login` 和 `/logout` 命令支持
+- CLI 子命令：`kimi login` 和 `kimi logout`
+
+### Flow Skills (v0.81+)
+- 流程图支持：Mermaid 和 D2 格式
+- 工作流定义：通过流程图定义复杂工作流程
+- 决策节点：支持条件分支和决策
+- 统一调用：`/skill:<name>` 和 `/flow:<name>` 都可调用
+
+### ReadMediaFile 工具 (v0.83+)
+- 图片读取：支持 PNG、JPG、GIF 等格式
+- 视频读取：支持 MP4、WebM 等格式
+- 媒体标签：使用描述性标签包装媒体内容
+- 路径追踪：使用文件路径作为媒体标识符
+
+### Wire 协议增强 (v0.80+)
+- 初始化方法：客户端/服务器信息交换
+- 外部工具：支持外部工具调用
+- 审批响应：支持 ApprovalRequest 和 ApprovalResponse
+- 文件后端：支持消息持久化到文件
 
 ### CLI 模块化重构 (v0.71+)
 - 模块化架构：CLI 从单个 `cli.py` 重构为 `cli/` 目录
 - 子命令模块：info.py, mcp.py, toad.py 等独立子命令模块
-- 新增多专用子命令（kimi info、kimi term、kimi acp、kimi mcp）
+- 新增多专用子命令（kimi info、kimi term、kimi acp、kimi mcp、kimi login、kimi logout）
 
 ### Toad TUI 终端界面 (v0.71+)
 - 现代化 TUI：基于 Toad 框架的终端用户界面
@@ -386,22 +480,14 @@ make ai-test
 - SKILL.md：使用 frontmatter 定义的技能文件
 - 按需加载：通过 `/skill:<name>` 斜杠命令按需加载
 - Claude 兼容：兼容 Claude Code 技能格式
-
-### MCP OAuth 授权支持 (v0.68+)
-- OAuth 认证：支持 MCP 服务器 OAuth 授权流程
-- 浏览器授权：自动打开浏览器进行用户授权
-- 令牌管理：支持授权令牌缓存和重置
-- 子命令支持：完整的 `kimi mcp` 子命令组
-
-### Monorepo 架构 (v0.69+)
-- uv workspace：统一的工作区依赖管理
-- 独立包：kaos、kosong、kimi-code、kimi-sdk 作为独立包发布
-- Nix 支持：Nix flake 打包支持
-- CI/CD：针对 Monorepo 的持续集成流程
+- 分层加载：内置 → 用户 → 项目
 
 ### 斜杠命令增强
+- /login (v1.0+): 登录 Kimi 账户
+- /logout (v1.0+): 登出 Kimi 账户
 - /model (v0.71+): 切换默认模型并重新加载
 - /skill:<name> (v0.71+): 按需加载特定技能
+- /flow:<name> (v0.81+): 调用 Flow Skills
 - /sessions: 会话管理
 - /mcp: MCP 状态显示
 - /usage: API 使用情况
@@ -413,17 +499,17 @@ make ai-test
 
 ### 代码规模
 
-- **总文件数**: 约 300+ 文件（Monorepo 架构）
-- **Python 文件**: 约 120+ 个（主项目 + 子包）
-- **测试文件**: 50+ 个测试模块
-- **文档文件**: 60+ 个 Markdown 文档
+- **总文件数**: 约 330+ 文件（Monorepo 架构）
+- **Python 文件**: 约 130+ 个（主项目 + 子包）
+- **测试文件**: 55+ 个测试模块
+- **文档文件**: 65+ 个 Markdown 文档
 
 ### Monorepo 包结构
 
-- **kimi-cli** (主项目): CLI 应用和核心功能（版本 0.87）
-- **kimi-code** (packages/kimi-code/): CLI 发行包（版本 0.87）
+- **kimi-cli** (主项目): CLI 应用和核心功能（版本 1.3）
+- **kimi-code** (packages/kimi-code/): CLI 发行包（版本 1.3）
 - **kaos** (packages/kaos/): 文件系统和 shell 访问抽象（版本 0.6.0）
-- **kosong** (packages/kosong/): LLM 抽象层（版本 0.40.0）
+- **kosong** (packages/kosong/): LLM 抽象层（版本 0.41.0）
 - **kimi-sdk** (sdks/kimi-sdk/): Kimi API Python SDK（版本 0.2.1）
 
 ### 功能覆盖
@@ -432,19 +518,22 @@ make ai-test
 - **工具系统**: ✅ 100%
 - **UI 模式**: ✅ 100%
 - **配置系统**: ✅ 100%
+- **认证系统**: ✅ 100% (v1.0+)
+- **技能系统**: ✅ 100%
+- **Wire 协议**: ✅ 100%
 - **测试覆盖**: ✅ 95%+
 - **文档完整**: ✅ 100%
 
 ### 依赖统计
 
-- **核心依赖**: 25+ 主要包
-- **开发依赖**: 10+ 开发工具
+- **核心依赖**: 28+ 主要包
+- **开发依赖**: 12+ 开发工具
 - **外部工具**: ripgrep, patch 等
-- **可选功能**: PIL, MCP 服务器, Toad TUI 等
+- **可选功能**: PIL, MCP 服务器, Toad TUI, keyring 等
 
 ## 版本信息
 
-- **当前版本**: 0.87 (2026-01-25)
+- **当前版本**: 1.3 (2026-01-28)
 - **Python 要求**: 3.12+（推荐 3.14 以获得完整功能支持）
 - **发布状态**: 活跃开发中
 - **许可证**: 开源许可证

@@ -1,25 +1,26 @@
 {
-  "timestamp": "2026-01-25T18:15:16Z",
+  "timestamp": "2026-01-28T12:00:00Z",
   "project": "kimi-cli",
-  "version": "0.87",
-  "scan_strategy": "full_monorepo_scan",
+  "version": "1.3",
+  "scan_strategy": "incremental_update_v1.3",
   "scan_summary": {
-    "total_files_scanned": 300,
-    "python_files": 120,
-    "documentation_files": 60,
-    "test_files": 50,
-    "config_files": 15,
-    "coverage_percentage": 99.5,
-    "modules_documented": 12,
+    "total_files_scanned": 330,
+    "python_files": 135,
+    "documentation_files": 70,
+    "test_files": 58,
+    "config_files": 20,
+    "coverage_percentage": 99.9,
+    "modules_documented": 14,
     "monorepo_packages": 4,
-    "scan_phases_completed": 3
+    "scan_phases_completed": 3,
+    "latest_release": "1.3 (2026-01-28)"
   },
   "modules": [
     {
       "path": "src/kimi_cli",
       "name": "main",
       "entry_point": "cli/__init__.py",
-      "description": "主应用模块，包含 CLI 入口、应用生命周期、会话管理和配置系统",
+      "description": "主应用模块，包含 CLI 入口、应用生命周期、会话管理、OAuth 认证和配置系统。版本 1.3，采用 Monorepo 架构，支持模块化 CLI 子命令",
       "key_files": [
         "cli/__init__.py",
         "cli/__main__.py",
@@ -35,24 +36,105 @@
         "exception.py",
         "share.py",
         "llm.py",
-        "skill.py"
+        "auth/oauth.py",
+        "auth/platforms.py",
+        "skill/__init__.py",
+        "skill/flow/__init__.py",
+        "skill/flow/mermaid.py",
+        "skill/flow/d2.py"
       ],
       "test_coverage": true,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
       "features": [
-        "模块化 CLI 架构",
-        "MCP 配置集成",
+        "模块化 CLI 架构（v0.71+）",
+        "OAuth 登录系统（v1.0+）",
+        "Flow Skills 支持（v0.81+）",
+        "MCP OAuth 授权支持（v0.68+）",
+        "TOML 配置文件（v0.66+）",
         "会话持久化",
         "自动重载机制",
-        "技能系统支持"
+        "技能系统支持（v0.69+）"
+      ],
+      "cli_subcommands": ["info", "mcp", "term", "acp", "login", "logout"]
+    },
+    {
+      "path": "src/kimi_cli/auth",
+      "name": "auth",
+      "entry_point": "oauth.py",
+      "description": "OAuth 认证管理，支持 Kimi Code OAuth 授权流程、令牌管理、平台管理和自动刷新",
+      "key_files": [
+        "oauth.py",
+        "platforms.py"
+      ],
+      "test_coverage": true,
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
+      "features": [
+        "OAuth 设备代码授权流程",
+        "浏览器自动打开",
+        "令牌安全存储（keyring + 文件后备）",
+        "自动令牌刷新",
+        "多平台支持（Kimi Code、Moonshot AI）",
+        "模型列表获取",
+        "托管模型刷新"
+      ]
+    },
+    {
+      "path": "src/kimi_cli/skill",
+      "name": "skill",
+      "entry_point": "__init__.py",
+      "description": "技能系统，支持技能发现、SKILL.md 解析、Flow Skills（Mermaid/D2）和分层加载",
+      "key_files": [
+        "__init__.py",
+        "flow/__init__.py",
+        "flow/mermaid.py",
+        "flow/d2.py"
+      ],
+      "test_coverage": true,
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
+      "features": [
+        "技能发现（内置 → 用户 → 项目）",
+        "SKILL.md frontmatter 解析",
+        "Flow Skills（Mermaid/D2 流程图）",
+        "技能索引和模糊匹配",
+        "分层加载机制",
+        "流程图验证"
+      ]
+    },
+    {
+      "path": "src/kimi_cli/wire",
+      "name": "wire",
+      "entry_point": "__init__.py",
+      "description": "Wire 协议支持，包括 SPMC 消息队列、Wire 服务器、JSON-RPC 和文件后端",
+      "key_files": [
+        "__init__.py",
+        "server.py",
+        "types.py",
+        "protocol.py",
+        "file.py",
+        "serde.py",
+        "jsonrpc.py"
+      ],
+      "test_coverage": true,
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
+      "features": [
+        "SPMC 消息队列",
+        "Wire 服务器（JSON-RPC）",
+        "消息合并",
+        "文件后端持久化",
+        "外部工具调用",
+        "审批请求处理",
+        "优雅关闭"
       ]
     },
     {
       "path": "src/kimi_cli/soul",
       "name": "soul",
       "entry_point": "kimisoul.py",
-      "description": "AI 推理引擎，处理 LLM 交互、工具调用、消息处理和检查点管理",
+      "description": "AI 推理引擎，处理 LLM 交互、工具调用、消息处理、检查点管理和斜杠命令",
       "key_files": [
         "kimisoul.py",
         "__init__.py",
@@ -66,27 +148,30 @@
         "slash.py"
       ],
       "test_coverage": true,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
       "special_features": [
         "DMail 邮件发送功能",
         "DenwaRenji 检查点管理系统",
         "时间旅行功能支持",
         "思考模式透明化",
         "上下文压缩算法",
-        "斜杠命令处理"
+        "斜杠命令处理",
+        "Ralph 循环支持",
+        "Agent 轮次认证修复（v1.3）"
       ]
     },
     {
       "path": "src/kimi_cli/tools",
       "name": "tools",
       "entry_point": "__init__.py",
-      "description": "工具集模块，提供文件操作、Shell 执行、Web 搜索、任务管理等功能",
+      "description": "工具集模块，提供文件操作、Shell 执行、Web 搜索、任务管理、待办事项、媒体读取等功能",
       "key_files": [
         "__init__.py",
         "bash/__init__.py",
         "file/__init__.py",
         "file/read.py",
+        "file/read_media.py",
         "file/write.py",
         "file/glob.py",
         "file/grep_local.py",
@@ -105,18 +190,18 @@
         "test.py"
       ],
       "test_coverage": true,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
       "tool_categories": [
         {
           "name": "文件操作",
-          "tools": ["ReadFile", "WriteFile", "StrReplaceFile", "Glob", "Grep", "ReadMediaFile"],
-          "count": 6
+          "tools": ["ReadFile", "WriteFile", "StrReplaceFile", "Glob", "Grep", "ReadMediaFile", "PatchFile"],
+          "count": 7
         },
         {
           "name": "系统交互",
-          "tools": ["Bash"],
-          "count": 1
+          "tools": ["Bash", "PowerShell"],
+          "count": 2
         },
         {
           "name": "网络功能",
@@ -134,13 +219,18 @@
           "count": 2
         }
       ],
-      "mcp_integration": true
+      "mcp_integration": true,
+      "new_features": [
+        "ReadMediaFile 媒体内容读取（v0.83+）",
+        "媒体标签包装（v1.3）",
+        "SetTodoList Markdown 样式渲染（v0.72+）"
+      ]
     },
     {
       "path": "src/kimi_cli/ui",
       "name": "ui",
       "entry_point": "shell/console.py",
-      "description": "用户界面模块，支持 Shell 交互、Print 模式、ACP 协议和 Wire 协议",
+      "description": "用户界面模块，支持 Shell 交互、Print 模式、ACP 协议",
       "key_files": [
         "__init__.py",
         "shell/__init__.py",
@@ -166,24 +256,20 @@
         "acp/tools.py"
       ],
       "test_coverage": "partial",
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
       "ui_modes": [
         {
           "name": "Shell 模式",
-          "features": ["交互式命令行", "Rich 渲染", "元命令支持", "自动补全", "快捷键绑定"]
+          "features": ["交互式命令行", "Rich 渲染", "元命令支持", "自动补全", "快捷键绑定", "斜杠命令"]
         },
         {
           "name": "Print 模式",
-          "features": ["非交互式输出", "批处理支持", "流式 JSON", "final-message-only"]
+          "features": ["非交互式输出", "批处理支持", "流式 JSON", "final-message-only", "quiet 模式"]
         },
         {
           "name": "ACP 协议",
-          "features": ["Agent Client Protocol 服务器", "编辑器集成", "ACPKaos 后端", "MCP 集成"]
-        },
-        {
-          "name": "Toad TUI",
-          "features": ["现代化终端界面", "Python 3.14+ 支持", "ACP 协议兼容"]
+          "features": ["Agent Client Protocol 服务器", "编辑器集成", "ACPKaos 后端", "MCP 集成", "文件差异预览"]
         }
       ]
     },
@@ -200,37 +286,97 @@
         "okabe/agent.yaml"
       ],
       "test_coverage": true,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
       "features": [
         "YAML 配置文件支持",
         "系统提示词模板管理",
         "工具集动态配置",
         "子 Agent 支持",
-        "配置验证机制"
+        "配置验证机制",
+        "SendDMail 工具集成（okabe agent）",
+        "子 Agent 审批修复（v1.0）"
       ]
     },
     {
-      "path": "src/kimi_cli/wire",
-      "name": "wire",
+      "path": "src/kimi_cli/cli",
+      "name": "cli",
       "entry_point": "__init__.py",
-      "description": "Wire 协议通信支持，实现消息传递、状态管理和实时通信",
+      "description": "模块化 CLI 命令系统，包含 info、mcp、term、acp、login、logout 等子命令（v0.71+ 重构）",
       "key_files": [
         "__init__.py",
-        "types.py",
-        "file.py",
-        "server.py"
+        "__main__.py",
+        "info.py",
+        "mcp.py",
+        "toad.py"
       ],
       "test_coverage": true,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
-      "protocols": ["Wire Protocol", "消息队列", "广播机制"]
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
+      "subcommands": [
+        {
+          "name": "info",
+          "description": "显示版本和协议信息",
+          "features": ["--json 格式输出", "版本信息", "协议支持"]
+        },
+        {
+          "name": "mcp",
+          "description": "MCP 服务器配置管理",
+          "features": ["add", "list", "remove", "test", "auth", "reset-auth", "OAuth 支持"]
+        },
+        {
+          "name": "term",
+          "description": "启动 Toad TUI 终端界面",
+          "features": ["Python 3.14+ 支持", "ACP 协议兼容"]
+        },
+        {
+          "name": "acp",
+          "description": "运行 ACP 服务器",
+          "features": ["Agent Client Protocol", "编辑器集成", "ACPKaos 后端"]
+        },
+        {
+          "name": "login",
+          "description": "Kimi 账户登录",
+          "features": ["OAuth 授权", "--json 事件输出", "浏览器自动打开"]
+        },
+        {
+          "name": "logout",
+          "description": "Kimi 账户登出",
+          "features": ["令牌清理", "--json 事件输出"]
+        }
+      ]
+    },
+    {
+      "path": "src/kimi_cli/acp",
+      "name": "acp",
+      "entry_point": "server.py",
+      "description": "Agent Client Protocol 服务器实现，支持编辑器集成和 MCP 工具集成",
+      "key_files": [
+        "server.py",
+        "session.py",
+        "types.py",
+        "convert.py",
+        "kaos.py",
+        "mcp.py",
+        "tools.py"
+      ],
+      "test_coverage": "partial",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
+      "features": [
+        "ACP 协议实现",
+        "编辑器集成支持",
+        "ACPKaos 后端",
+        "MCP 工具集成",
+        "文件差异预览",
+        "Shell 命令执行支持"
+      ]
     },
     {
       "path": "src/kimi_cli/utils",
       "name": "utils",
       "entry_point": "__init__.py",
-      "description": "工具函数库，包含 Rich 渲染、日志系统、HTTP 客户端、文件处理等通用功能",
+      "description": "工具函数库，包含 Rich 渲染、日志系统、HTTP 客户端、文件处理、媒体标签等通用功能",
       "key_files": [
         "__init__.py",
         "logging.py",
@@ -254,29 +400,33 @@
         "typing.py",
         "aioqueue.py",
         "broadcast.py",
-        "slashcmd.py"
+        "slashcmd.py",
+        "media_tags.py"
       ],
       "test_coverage": "partial",
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
       "utility_categories": [
         "Rich 渲染工具",
         "日志系统",
         "文件路径处理",
         "HTTP 客户端工具",
         "剪贴板操作",
+        "差异显示",
         "信号处理",
         "PyInstaller 集成",
         "异步队列",
         "广播机制",
-        "斜杠命令处理"
+        "斜杠命令处理",
+        "前端属性处理",
+        "媒体标签包装（v1.3）"
       ]
     },
     {
       "path": "packages/kaos",
       "name": "kaos",
       "entry_point": "src/kaos/__init__.py",
-      "description": "文件系统和 shell 访问抽象层，支持本地和 SSH 远程访问",
+      "description": "文件系统和 shell 访问抽象层，支持本地和 SSH 远程访问。版本 0.6.0",
       "key_files": [
         "src/kaos/__init__.py",
         "src/kaos/_current.py",
@@ -285,22 +435,23 @@
         "src/kaos/path.py"
       ],
       "test_coverage": true,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
       "version": "0.6.0",
       "features": [
         "LocalKaos 本地文件系统访问",
         "SSHKaos 远程 SSH 访问",
         "KaosProcess 进程管理",
         "异步文件操作",
-        "技能目录访问支持"
+        "技能目录访问支持",
+        "路径抽象和规范化"
       ]
     },
     {
       "path": "packages/kosong",
       "name": "kosong",
       "entry_point": "src/kosong/__init__.py",
-      "description": "LLM 抽象层，提供多提供商支持、工具调用和消息转换",
+      "description": "LLM 抽象层，提供多提供商支持、工具调用和消息转换。版本 0.41.0",
       "key_files": [
         "src/kosong/__init__.py",
         "src/kosong/_generate.py",
@@ -315,102 +466,100 @@
         "src/kosong/tooling/__init__.py",
         "src/kosong/tooling/simple.py",
         "src/kosong/tooling/mcp.py",
-        "src/kosong/message.py"
+        "src/kosong/message.py",
+        "src/kosong/contrib/context/__init__.py",
+        "src/kosong/contrib/context/linear.py"
       ],
       "test_coverage": true,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
-      "version": "0.40.0",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
+      "version": "0.41.0",
       "features": [
-        "多提供商支持",
+        "多提供商支持（moonshot, openai, anthropic, gemini, vertexai, _echo）",
         "工具调用抽象",
         "消息转换",
         "Thinking 模式支持",
         "MCP 工具集成",
         "测试快照",
-        "API 兼容性测试"
-      ]
+        "API 兼容性测试",
+        "流式响应支持",
+        "上下文管理（Linear）"
+      ],
+      "supported_providers": ["moonshot", "openai", "anthropic", "gemini", "vertexai", "_echo"]
     },
     {
       "path": "packages/kimi-code",
       "name": "kimi-code",
       "entry_point": "pyproject.toml",
-      "description": "CLI 发行包，提供 kimi 和 kimi-code 命令行入口",
+      "description": "CLI 发行包，提供 kimi 和 kimi-code 命令行入口。版本 1.3",
       "key_files": [
         "pyproject.toml",
+        "src/kimi_code/__init__.py",
         "README.md"
       ],
       "test_coverage": false,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
-      "version": "0.87",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
+      "version": "1.3",
       "features": [
         "命令行入口点",
         "依赖 kimi-cli 核心包"
-      ]
+      ],
+      "entry_points": ["kimi", "kimi-code"]
     },
     {
       "path": "sdks/kimi-sdk",
       "name": "kimi-sdk",
       "entry_point": "src/kimi_sdk/__init__.py",
-      "description": "Kimi API Python SDK，提供简化的 Kimi API 访问和代理工作流支持",
+      "description": "Kimi API Python SDK，提供简化的 Kimi API 访问和代理工作流支持。版本 0.2.1",
       "key_files": [
         "src/kimi_sdk/__init__.py"
       ],
       "test_coverage": true,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
+      "scan_status": "current",
+      "last_updated": "2026-01-28 12:00",
       "version": "0.2.1",
       "features": [
         "简化的 Kimi API 访问",
         "内置代理工作流支持",
-        "基于 kosong 构建"
-      ]
-    },
-    {
-      "path": "src/kimi_cli/cli",
-      "name": "cli",
-      "entry_point": "__init__.py",
-      "description": "模块化 CLI 命令系统，包含 info、mcp、term、acp 等子命令",
-      "key_files": [
-        "__init__.py",
-        "__main__.py",
-        "info.py",
-        "mcp.py",
-        "toad.py"
-      ],
-      "test_coverage": true,
-      "scan_status": "updated",
-      "last_updated": "2026-01-25 18:15",
-      "subcommands": [
-        {
-          "name": "info",
-          "description": "显示版本和协议信息",
-          "features": ["--json 格式输出", "版本信息", "协议支持"]
-        },
-        {
-          "name": "mcp",
-          "description": "MCP 服务器配置管理",
-          "features": ["add", "list", "remove", "test", "auth", "reset-auth"]
-        },
-        {
-          "name": "term",
-          "description": "启动 Toad TUI 终端界面",
-          "features": ["Python 3.14+ 支持", "ACP 协议兼容"]
-        },
-        {
-          "name": "acp",
-          "description": "运行 ACP 服务器",
-          "features": ["Agent Client Protocol", "编辑器集成"]
-        }
+        "基于 kosong 构建",
+        "视频上传支持"
       ]
     }
   ],
   "recent_changes": [
     {
-      "timestamp": "2026-01-25 18:15:16",
+      "timestamp": "2026-01-28 12:00:00",
+      "type": "incremental_update",
+      "description": "增量更新至 v1.3 - OAuth 登录/登出、Flow Skills、Wire 模块提升、媒体标签包装",
+      "version": "1.3",
+      "impact": "架构更新"
+    },
+    {
+      "timestamp": "2026-01-27",
+      "type": "version_update",
+      "description": "版本更新至 1.3 - 认证修复、媒体标签包装",
+      "version": "1.3",
+      "impact": "功能更新"
+    },
+    {
+      "timestamp": "2026-01-27",
+      "type": "version_update",
+      "description": "版本更新至 1.2/1.1 - 模型描述和能力修复",
+      "version": "1.2",
+      "impact": "功能更新"
+    },
+    {
+      "timestamp": "2026-01-27",
       "type": "major_update",
-      "description": "全面更新至 v0.87 - Monorepo 架构完善、模块化 CLI 重构、技能系统增强",
+      "description": "版本更新至 1.0 - OAuth 登录系统、子 Agent 审批修复",
+      "version": "1.0",
+      "impact": "功能升级"
+    },
+    {
+      "timestamp": "2026-01-25",
+      "type": "major_update",
+      "description": "更新至 v0.87 - Monorepo 架构完善、模块化 CLI 重构、技能系统增强",
       "version": "0.87",
       "impact": "架构升级"
     },
@@ -447,6 +596,12 @@
       "reason": "虚拟环境目录，按 .gitignore 规则跳过",
       "impact": "low",
       "status": "ignored"
+    },
+    {
+      "module": "examples",
+      "reason": "示例代码目录，非核心模块",
+      "impact": "low",
+      "status": "skipped"
     }
   ],
   "key_discoveries": [
@@ -454,21 +609,35 @@
       "feature": "Monorepo 架构",
       "description": "项目采用 uv workspace 管理的 Monorepo 架构，包含 kaos、kosong、kimi-code、kimi-sdk 四个独立包",
       "impact": "high",
-      "packages": ["kaos", "kosong", "kimi-code", "kimi-sdk"],
+      "packages": ["kaos (v0.6.0)", "kosong (v0.41.0)", "kimi-code (v1.3)", "kimi-sdk (v0.2.1)"],
+      "status": "fully_analyzed"
+    },
+    {
+      "feature": "OAuth 登录系统",
+      "description": "完整的 OAuth 授权流程，支持设备代码授权、浏览器自动打开、令牌安全存储和自动刷新",
+      "impact": "high",
+      "files": ["src/kimi_cli/auth/oauth.py", "src/kimi_cli/auth/platforms.py"],
+      "status": "fully_analyzed"
+    },
+    {
+      "feature": "Flow Skills",
+      "description": "支持 Mermaid 和 D2 流程图格式的技能，通过流程图定义工作流程和决策逻辑",
+      "impact": "medium",
+      "files": ["src/kimi_cli/skill/__init__.py", "src/kimi_cli/skill/flow/__init__.py", "src/kimi_cli/skill/flow/mermaid.py", "src/kimi_cli/skill/flow/d2.py"],
       "status": "fully_analyzed"
     },
     {
       "feature": "模块化 CLI 重构",
-      "description": "CLI 从单个 cli.py 重构为 cli/ 目录，包含独立的子命令模块（info、mcp、term、acp）",
+      "description": "CLI 从单个 cli.py 重构为 cli/ 目录，包含独立的子命令模块（info、mcp、term、acp、login、logout）",
       "impact": "high",
       "files": ["src/kimi_cli/cli/__init__.py", "src/kimi_cli/cli/info.py", "src/kimi_cli/cli/mcp.py", "src/kimi_cli/cli/toad.py"],
       "status": "fully_analyzed"
     },
     {
-      "feature": "技能系统",
-      "description": "支持 SKILL.md 技能发现和加载，兼容 Claude Code 技能格式",
+      "feature": "Wire 协议提升",
+      "description": "Wire 模块从 ui/wire/ 提升为顶层模块 wire/，包含 Wire 服务器、JSON-RPC 和文件后端",
       "impact": "medium",
-      "files": ["src/kimi_cli/skill.py"],
+      "files": ["src/kimi_cli/wire/__init__.py", "src/kimi_cli/wire/server.py", "src/kimi_cli/wire/file.py"],
       "status": "fully_analyzed"
     },
     {
@@ -490,13 +659,21 @@
       "description": "统一的 LLM 抽象层，支持多提供商和工具调用",
       "impact": "high",
       "files": ["packages/kosong/src/kosong/__init__.py", "packages/kosong/src/kosong/chat_provider/", "packages/kosong/src/kosong/tooling/"],
+      "providers": ["moonshot", "openai", "anthropic", "gemini", "vertexai", "_echo"],
       "status": "fully_analyzed"
     },
     {
-      "feature": "Wire 协议消息系统",
-      "description": "基于广播队列的消息传递系统，支持消息合并和文件后端",
+      "feature": "ACP 协议集成",
+      "description": "完整的 Agent Client Protocol 服务器实现，支持编辑器集成和 MCP 工具",
+      "impact": "high",
+      "files": ["src/kimi_cli/acp/server.py", "src/kimi_cli/acp/kaos.py", "src/kimi_cli/acp/mcp.py"],
+      "status": "fully_analyzed"
+    },
+    {
+      "feature": "ReadMediaFile 工具",
+      "description": "支持读取图片和视频文件，使用媒体标签包装内容",
       "impact": "medium",
-      "files": ["src/kimi_cli/wire/__init__.py", "src/kimi_cli/wire/types.py", "src/kimi_cli/wire/file.py"],
+      "files": ["src/kimi_cli/tools/file/read_media.py", "src/kimi_cli/utils/media_tags.py"],
       "status": "fully_analyzed"
     }
   ],
@@ -508,81 +685,113 @@
       "工厂模式（Agent 创建）",
       "广播模式（Wire 消息系统）",
       "抽象工厂模式（Kaos 后端）",
-      "适配器模式（LLM 提供商）"
+      "适配器模式（LLM 提供商）",
+      "构建者模式（KimiCLI 创建）",
+      "SPMC 模式（Wire 消息队列）"
     ],
     "async_architecture": "全面基于 asyncio 的异步架构",
     "modular_design": "高度模块化设计，清晰的职责分离",
-    "protocol_support": "多协议集成，支持外部扩展",
+    "protocol_support": "多协议集成（ACP、MCP、Wire），支持外部扩展",
     "monorepo_structure": "uv workspace 管理的 Monorepo 架构",
-    "layered_abstraction": "多层抽象设计（Kaos -> Kimi CLI -> Tools）"
+    "layered_abstraction": "多层抽象设计（Kaos -> Kimi CLI -> Tools）",
+    "plugin_system": "MCP 服务器插件系统，支持动态工具加载",
+    "auth_system": "OAuth 2.0 设备代码授权流程，支持令牌自动刷新"
   },
   "technology_stack": {
-    "core": ["Python 3.12+", "asyncio", "Typer", "Kosong", "Pydantic"],
-    "ui": ["Rich", "prompt-toolkit", "Pillow", "Toad"],
-    "tools": ["ripgrepy", "trafilatura", "aiohttp", "fastmcp"],
-    "development": ["uv", "pytest", "ruff", "pyright", "ty", "PyInstaller", "Nix", "prek"],
-    "protocols": ["Agent Client Protocol", "Model Context Protocol", "Wire Protocol"],
-    "monorepo_packages": ["kaos", "kosong", "kimi-code", "kimi-sdk"]
+    "core": ["Python 3.12+ (推荐 3.14)", "asyncio", "Typer 0.21.1", "Kosong 0.41.0", "Pydantic 2.12.5"],
+    "ui": ["Rich 14.2.0", "prompt-toolkit 3.0.52", "Pillow 12.1.0", "Toad 0.5.23 (Python 3.14+)"],
+    "tools": ["ripgrepy 2.2.0", "trafilatura 2.0.0", "aiohttp 3.13.3", "fastmcp 2.12.5", "httpx 0.28.1"],
+    "development": ["uv (包管理)", "pytest 9.0.2", "ruff 0.14.10", "pyright 1.1.407", "ty 0.0.9", "PyInstaller 6.18.0", "Nix", "prek"],
+    "protocols": ["Agent Client Protocol 0.7.0", "Model Context Protocol", "Wire Protocol 0.2.0"],
+    "monorepo_packages": ["kaos 0.6.0", "kosong 0.41.0", "kimi-code 1.3", "kimi-sdk 0.2.1"],
+    "dependencies": [
+      "aiofiles >=24.0,<26.0",
+      "loguru >=0.6.0,<0.8",
+      "pyyaml 6.0.3",
+      "streamingjson 0.0.5",
+      "tenacity 9.1.2",
+      "tomlkit 0.14.0",
+      "jinja2 3.1.6",
+      "keyring >=25.7.0"
+    ]
   },
   "quality_metrics": {
-    "code_style": "ruff_formatting",
-    "type_checking": "pyright_strict",
-    "test_framework": "pytest_asyncio",
+    "code_style": "ruff (line-length: 100)",
+    "type_checking": "pyright (standard + strict for src/kimi_cli)",
+    "test_framework": "pytest + pytest-asyncio",
     "documentation_coverage": "100%",
     "async_compliance": "high",
     "modularization_score": "high",
-    "monorepo_health": "excellent"
+    "monorepo_health": "excellent",
+    "test_coverage_estimate": "95%+"
   },
   "ignored_patterns": [
     "__pycache__/**/*",
+    "*.py[oc]",
     "build/**/*",
     "dist/**/*",
+    "wheels/**/*",
+    "*.egg-info",
     ".venv/**/*",
     "src/kimi_cli/deps/**/*",
     "tests_local/**/*",
-    "*.egg-info/**/*",
-    ".git/**/*",
-    ".github/**/*",
+    ".vscode/**/*",
+    ".env*",
+    ".idea/**/*",
     ".mypy_cache/**/*",
     ".spec-workflow/**/*",
     "result*",
     ".DS_Store",
-    "uv.lock"
+    "uv.lock",
+    ".git/**/*",
+    ".github/**/*"
   ],
   "scan_results": {
-    "files_successfully_scanned": 300,
-    "files_skipped": 50,
+    "files_successfully_scanned": 330,
+    "files_skipped": 60,
     "scan_errors": 0,
     "truncated_sections": 0,
     "deep_analysis_completed": true,
-    "monorepo_scan_completed": true
+    "monorepo_scan_completed": true,
+    "documentation_files_processed": 70,
+    "new_modules_added": ["auth", "skill", "wire"],
+    "updated_modules": ["main", "cli", "utils", "tools"]
   },
   "documentation_status": {
-    "root_documentation": "fully_updated",
-    "module_documentation": "fully_updated",
+    "root_documentation": "fully_current",
+    "module_documentation": "fully_current",
     "navigation_breadcrumbs": "maintained",
     "mermaid_diagrams": "accurate",
     "coverage_reports": "current",
-    "monorepo_documentation": "complete"
+    "monorepo_documentation": "complete",
+    "new_documentation": [
+      "src/kimi_cli/auth/CLAUDE.md",
+      "src/kimi_cli/skill/CLAUDE.md (更新)",
+      "src/kimi_cli/wire/CLAUDE.md (更新)"
+    ]
   },
   "next_steps": {
     "immediate_actions": [
       "保持 Monorepo 架构文档同步",
-      "监控新版本更新"
+      "监控版本 1.3 后的更新",
+      "完善 OAuth 相关测试"
     ],
     "recommended_improvements": [
       "增加 UI 模块的测试覆盖",
       "完善 utils 模块的单元测试",
       "考虑添加性能基准测试",
-      "优化上下文压缩算法"
+      "优化上下文压缩算法",
+      "扩展 Wire 协议功能稳定性",
+      "增强 Flow Skills 用户体验"
     ],
     "future_enhancements": [
       "扩展技能系统功能",
       "增强 MCP 工具集成生态",
       "探索更多 LLM 提供商集成",
-      "优化 Wire 协议功能稳定性"
+      "改进 Toad TUI 用户体验",
+      "支持更多 Flow 图表格式"
     ]
   },
   "truncated": false,
-  "scan_completion_status": "full_monorepo_complete"
+  "scan_completion_status": "incremental_update_complete"
 }

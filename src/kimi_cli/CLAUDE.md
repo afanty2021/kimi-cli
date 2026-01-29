@@ -4,6 +4,7 @@
 
 ## 变更记录 (Changelog)
 
+- **2026-01-28**: 更新至 v1.3 - OAuth 登录/登出、Flow Skills、Wire 模块提升
 - **2026-01-04**: 更新至 v0.72 - CLI 模块化重构、Toad TUI、技能系统、Monorepo 架构
 - **2025-12-25**: 更新至 v0.68 - 添加 MCP OAuth 支持、配置文件迁移到 TOML、ACP 增强功能
 - **2025-11-18**: 初始化主应用模块文档
@@ -17,6 +18,9 @@
 - 会话创建和管理
 - 配置加载和验证
 - 多种运行模式协调
+- OAuth 认证管理 (v1.0+)
+- 技能系统集成 (v0.69+)
+- Flow Skills 支持 (v0.81+)
 
 ## 入口与启动
 
@@ -26,7 +30,7 @@
 - **`cli/__main__.py`**: Python 模块执行入口
 - **`cli/info.py`**: `kimi info` 子命令实现
 - **`cli/mcp.py`**: `kimi mcp` 子命令组实现
-- **`toad.py`**: `kimi term` TUI 启动器
+- **`cli/toad.py`**: `kimi term` TUI 启动器
 - **`app.py`**: KimiCLI 主应用类实现
 - **`__init__.py`**: 模块初始化（基本为空）
 
@@ -55,17 +59,19 @@ cli.add_typer(info_cli, name="info")    # kimi info
 cli.add_typer(mcp_cli, name="mcp")      # kimi mcp
 cli.command()(run_acp)                  # kimi acp
 cli.command()(run_term)                 # kimi term
+cli.command()(login)                    # kimi login (v1.0+)
+cli.command()(logout)                   # kimi logout (v1.0+)
 ```
 
 ## 对外接口
 
-### CLI 命令接口 (v0.71+ 更新)
+### CLI 命令接口 (v1.3 更新)
 
 **基础命令**:
 - `kimi` - 启动交互式 Shell 模式
 - `kimi --print` - 非交互式执行
 - `kimi --acp` - Agent Client Protocol 服务器模式
-- `kimi --wire` - 实验性 Wire 协议服务器
+- `kimi --wire` - Wire 协议服务器
 - `kimi --session/-S <id>` - 指定会话 ID 恢复会话
 
 **子命令 (v0.71+)**:
@@ -73,10 +79,22 @@ cli.command()(run_term)                 # kimi term
 - `kimi info` - 显示版本和协议信息（支持 `--json` 格式）
 - `kimi acp` - 运行 ACP 服务器
 - `kimi mcp` - MCP 服务器配置管理子命令组
+- `kimi login` - Kimi 账户登录 (v1.0+)
+- `kimi logout` - Kimi 账户登出 (v1.0+)
 
-**新增选项 (v0.69-v0.72)**:
+**新增选项 (v0.69-v1.3)**:
 - `--skills-dir DIR` - 自定义技能目录路径（默认 `~/.kimi/skills`）
 - `--final-message-only` / `--quiet` - Print 模式下仅输出最终消息 (v0.70+)
+
+### OAuth 子命令 (v1.0+)
+
+```bash
+# 登录 Kimi 账户
+kimi login [--json]
+
+# 登出 Kimi 账户
+kimi logout [--json]
+```
 
 ### MCP 子命令 (v0.68+)
 
@@ -106,7 +124,7 @@ kimi mcp reset-auth <name>
 kimi mcp remove <name>
 ```
 
-### 核心类 (v0.69-v0.72 更新)
+### 核心类 (v0.69-v1.3 更新)
 
 ```python
 class KimiCLI:
@@ -127,23 +145,35 @@ class KimiCLI:
     async def run_wire_stdio(self) -> bool  # v0.59+ 重命名
     async def run(self, user_input: str) -> AsyncIterator[WireMessage]  # v0.59+ 新增
 
+# v1.0+ OAuth 管理
+class OAuthManager:
+    """OAuth 令牌管理器"""
+    def __init__(self, config: Config) -> None
+    def common_headers(self) -> dict[str, str]
+    def resolve_api_key(self, api_key: SecretStr, oauth: OAuthRef | None) -> str
+    async def ensure_fresh(self, runtime: Runtime) -> None
+    @asynccontextmanager
+    async def refreshing(self, runtime: Runtime) -> AsyncIterator[None]
+
 # v0.69+ 技能系统
 class Skill(BaseModel):
     """技能信息模型"""
     name: str
     description: str
-    dir: Path
+    type: SkillType  # "standard" 或 "flow" (v0.81+)
+    dir: KaosPath
+    flow: Flow | None  # Flow Skills (v0.81+)
 
     @property
-    def skill_md_file(self) -> Path:
+    def skill_md_file(self) -> KaosPath:
         """SKILL.md 文件路径"""
         return self.dir / "SKILL.md"
 
-def discover_skills(skills_dir: Path) -> list[Skill]:
+async def discover_skills(skills_dir: KaosPath) -> list[Skill]:
     """发现指定目录中的所有技能"""
 
-def parse_skill_md(skill_md_file: Path) -> Skill:
-    """解析 SKILL.md 文件"""
+async def resolve_skills_roots(work_dir: KaosPath) -> list[KaosPath]:
+    """解析分层技能根目录（内置 → 用户 → 项目）"""
 ```
 
 ## 关键依赖与配置
@@ -154,12 +184,15 @@ def parse_skill_md(skill_md_file: Path) -> Skill:
 - **Kosong**: LLM 抽象层和聊天提供者
 - **Pydantic**: 数据验证和序列化
 - **asyncio**: 异步运行时支持
+- **keyring**: 安全令牌存储 (v1.0+)
+- **aiohttp**: 异步 HTTP 客户端
 
 ### 配置系统
 
 - **配置文件格式**: v0.66+ 迁移到 TOML 格式（~/.kimi/config.toml）
 - **配置文件参数**: v0.68+ 支持 `--config` 和 `--config-file` 选项传入 JSON/TOML 配置
-- **模型配置**: 支持多种 LLM 提供商和模型
+- **模型配置**: 支持多种 LLM 提供商
+- **OAuth 配置**: v1.0+ 支持 OAuth 令牌存储和自动刷新
 - **MCP 配置**: 支持多个 MCP 服务器配置（~/.kimi/mcp.json）
 - **Agent 配置**: 支持自定义 Agent 规范文件
 - **自动迁移**: 自动将旧的 JSON 配置迁移到 TOML 格式
@@ -188,6 +221,21 @@ max_retries_per_step = 3
 tool_call_timeout_ms = 60000
 ```
 
+### OAuth 配置 (v1.0+)
+
+```python
+# 在 LLMProvider 中使用 OAuth
+class LLMProvider(BaseModel):
+    type: ProviderType
+    base_url: str
+    api_key: SecretStr
+    oauth: OAuthRef | None  # OAuth 引用
+
+class OAuthRef(BaseModel):
+    storage: Literal["keyring", "file"]
+    key: str  # 令牌键名
+```
+
 ### 运行时配置
 
 - **会话管理**: Session 类负责会话持久化
@@ -202,6 +250,8 @@ tool_call_timeout_ms = 60000
 斜杠命令分为两个级别：
 
 **Shell 级命令**:
+- `/login` - 登录 Kimi 账户 (v1.0+)
+- `/logout` - 登出 Kimi 账户 (v1.0+)
 - `/sessions` - 列出和切换会话 (v0.64+)
 - `/mcp` - 显示 MCP 服务器和工具状态 (v0.66+)
 - `/model` - 切换默认模型并重新加载 (v0.71+)
@@ -218,6 +268,7 @@ tool_call_timeout_ms = 60000
 - `/clear` / `/reset` - 清除上下文
 - `/feedback` - 发送反馈
 - `/skill:<name>` - 按需加载指定技能 (v0.71+)
+- `/flow:<name>` - 调用 Flow Skills (v0.81+)
 
 ## 数据模型
 
@@ -231,12 +282,13 @@ class LLMProvider(BaseModel):
     api_key: SecretStr
     env: dict[str, str] | None  # v0.68+ 新增
     custom_headers: dict[str, str] | None
+    oauth: OAuthRef | None  # v1.0+ 新增
 
 class LLMModel(BaseModel):
     provider: str
     model: str
     max_context_size: int
-    capabilities: set[ModelCapability] | None  # thinking, tool_calling, streaming
+    capabilities: set[ModelCapability] | None  # thinking, tool_calling, streaming, image_in, video_in
 
 class MCPClientConfig(BaseModel):  # v0.66+ 新增
     tool_call_timeout_ms: int = 60000
@@ -282,6 +334,43 @@ class ApprovalRequest(BaseModel):
     display: list[DisplayBlock] | None  # v0.68+ 新增差异显示
 ```
 
+### OAuth 模型 (v1.0+)
+
+```python
+class OAuthToken:
+    """OAuth 令牌"""
+    access_token: str
+    refresh_token: str
+    expires_at: float
+    scope: str
+    token_type: str
+
+class OAuthEvent:
+    """OAuth 事件"""
+    type: OAuthEventKind  # "info", "error", "waiting", "verification_url", "success"
+    message: str
+    data: dict[str, Any] | None
+```
+
+### 技能模型 (v0.69+, v0.81+ 更新)
+
+```python
+class Skill(BaseModel):
+    """技能信息"""
+    name: str
+    description: str
+    type: SkillType  # "standard" 或 "flow"
+    dir: KaosPath
+    flow: Flow | None  # Flow Skills
+
+class Flow:
+    """流程图数据结构"""
+    nodes: dict[str, FlowNode]
+    outgoing: dict[str, list[FlowEdge]]
+    begin_id: str
+    end_id: str
+```
+
 ## 测试与质量
 
 ### 测试覆盖
@@ -293,6 +382,9 @@ class ApprovalRequest(BaseModel):
 - `tests/test_bash.py`: Bash 工具测试
 - `tests/test_file_completer.py`: 文件补全测试
 - `tests/test_metacmd.py`: 元命令测试
+- `tests/test_auth.py`: OAuth 测试 (v1.0+)
+- `tests/test_skill.py`: 技能系统测试
+- `tests/test_flow.py`: Flow 解析测试
 
 ### 质量保证
 
@@ -319,6 +411,7 @@ A: (v0.69+)
 1. 在 `~/.kimi/skills/` 或 `~/.claude/skills/` 创建技能目录
 2. 在目录中创建 `SKILL.md` 文件，使用 frontmatter 定义技能
 3. 使用 `/skill:<name>` 斜杠命令按需加载
+4. 对于 Flow Skills (v0.81+)，在 SKILL.md 中嵌入 Mermaid/D2 流程图
 
 ### Q: 如何配置自定义模型？
 A: 使用 `--model` 参数指定模型名称，或在配置文件中设置默认模型。
@@ -339,6 +432,9 @@ kimi mcp add local-tool --transport stdio -- npx my-mcp-server
 
 ### Q: 如何查看版本信息？
 A: (v0.71+) 使用 `kimi info` 查看版本和协议信息，支持 `--json` 格式输出。
+
+### Q: 如何使用 OAuth 登录？
+A: (v1.0+) 运行 `kimi login`，会自动打开浏览器进行授权。授权完成后自动配置模型。
 
 ### Q: 配置文件格式从 JSON 改为 TOML 后如何迁移？
 A: v0.66+ 会自动将旧的 JSON 配置迁移到 TOML 格式，原始 JSON 文件会被备份为 `config.json.bak`。
@@ -366,6 +462,12 @@ A: (v0.70+) 使用 `--final-message-only` 或 `--quiet` 选项：
 kimi --print --final-message-only -c "你的问题"
 ```
 
+### Q: Flow Skills 和标准技能有什么区别？
+A: (v0.81+) Flow Skills 包含 Mermaid/D2 流程图，定义工作流程和决策逻辑。标准技能是纯文本指令。
+
+### Q: 如何调用 Flow Skills？
+A: (v0.81+) 使用 `/flow:<name>` 或 `/skill:<name>` 斜杠命令都可以调用 Flow Skills。
+
 ## 相关文件清单
 
 ### 核心文件
@@ -380,7 +482,6 @@ kimi --print --final-message-only -c "你的问题"
 - `app.py` - 主应用类
 - `config.py` - 配置系统（支持 TOML/JSON）
 - `session.py` - 会话管理（支持命名会话）
-- `skill.py` - **✨ 技能发现和加载** (v0.69+)
 - `toad.py` - **✨ Toad TUI 启动器** (v0.71+)
 - `constant.py` - 常量定义
 - `metadata.py` - 元数据管理
@@ -388,6 +489,23 @@ kimi --print --final-message-only -c "你的问题"
 - `exception.py` - 异常定义
 - `share.py` - 共享目录管理
 - `llm.py` - LLM 抽象层
+
+**认证系统 (v1.0+)**:
+- `auth/__init__.py` - OAuth 模块初始化
+- `auth/oauth.py` - OAuth 授权流程
+- `auth/platforms.py` - 平台管理
+
+**技能系统 (v0.69+)**:
+- `skill/__init__.py` - **✨ 技能发现和加载**
+- `skill/flow/__init__.py` - Flow 基础类型 (v0.81+)
+- `skill/flow/mermaid.py` - Mermaid 解析器 (v0.81+)
+- `skill/flow/d2.py` - D2 解析器 (v0.81+)
+
+**Wire 协议**:
+- `wire/__init__.py` - Wire 核心实现
+- `wire/server.py` - Wire 服务器 (v0.80+)
+- `wire/types.py` - 消息类型定义
+- `wire/file.py` - 文件后端 (v0.80+)
 
 ### 配置文件
 
@@ -401,7 +519,7 @@ kimi --print --final-message-only -c "你的问题"
 - `prompts/init.md` - 初始化提示词
 - `prompts/compact.md` - 压缩提示词
 
-## 模块依赖关系 (v0.71+ 更新)
+## 模块依赖关系 (v1.3 更新)
 
 ```mermaid
 graph TD
@@ -410,15 +528,20 @@ graph TD
     A --> D[session.py]
     A --> E[cli/info.py]
     A --> F[cli/mcp.py]
-    A --> G[toad.py]
-    B --> H[soul/kimisoul.py]
-    B --> I[tools/]
-    B --> J[ui/]
-    C --> K[llm.py]
-    D --> L[share.py]
-    H --> M[soul/agent.py]
-    H --> N[soul/toolset.py]
-    H --> O[soul/runtime.py]
-    N --> P[skill.py]
-    F --> L
+    A --> G[cli/toad.py]
+    A --> H[cli/login.py]
+    A --> I[cli/logout.py]
+    B --> J[soul/kimisoul.py]
+    B --> K[tools/]
+    B --> L[ui/]
+    C --> M[llm.py]
+    D --> N[share.py]
+    H --> O[auth/oauth.py]
+    I --> O
+    J --> P[soul/agent.py]
+    J --> Q[soul/toolset.py]
+    J --> R[soul/runtime.py]
+    Q --> S[skill/]
+    T[wire/] --> J
+    T --> L
 ```
