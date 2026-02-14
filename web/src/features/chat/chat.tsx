@@ -75,6 +75,8 @@ type ChatWorkspaceProps = {
   onRenameSession?: (sessionId: string, newTitle: string) => Promise<boolean>;
   /** Available slash commands */
   slashCommands?: SlashCommandDef[];
+  /** Maximum context size for the current model (tokens) */
+  maxContextSize?: number;
   /** Fork session at a specific turn */
   onForkSession?: (turnIndex: number) => void;
 };
@@ -102,6 +104,7 @@ export const ChatWorkspace = memo(function ChatWorkspaceComponent({
   onCreateSession,
   onOpenSidebar,
   onRenameSession,
+  maxContextSize,
   slashCommands = [],
   onForkSession,
 }: ChatWorkspaceProps): ReactElement {
@@ -143,7 +146,7 @@ export const ChatWorkspace = memo(function ChatWorkspaceComponent({
     return newStatus;
   }, [status, isAwaitingFirstResponse, isReplayingHistory, isUploadingFiles, messages]);
 
-  const maxTokens = 64000;
+  const maxTokens = maxContextSize ?? 64000;
   const usedTokens = Math.round(contextUsage * maxTokens);
   const usagePercent = Math.round(contextUsage * 100);
 
@@ -209,10 +212,6 @@ export const ChatWorkspace = memo(function ChatWorkspaceComponent({
           blocksExpanded={blocksExpanded}
           onToggleBlocks={() => setBlocksExpanded((prev) => !prev)}
           onOpenSearch={() => setIsSearchOpen(true)}
-          usedTokens={usedTokens}
-          usagePercent={usagePercent}
-          maxTokens={maxTokens}
-          tokenUsage={tokenUsage}
           onOpenSidebar={onOpenSidebar}
           onRenameSession={onRenameSession}
         />
@@ -262,6 +261,10 @@ export const ChatWorkspace = memo(function ChatWorkspaceComponent({
               isGitDiffLoading={isGitDiffLoading}
               slashCommands={slashCommands}
               activityStatus={activityStatus}
+              usagePercent={usagePercent}
+              usedTokens={usedTokens}
+              maxTokens={maxTokens}
+              tokenUsage={tokenUsage}
             />
           </div>
         )}
