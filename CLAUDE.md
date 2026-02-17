@@ -51,9 +51,13 @@ graph TD
     A --> H["认证系统"];
     A --> I["技能系统"];
     A --> J["Wire 协议"];
-    A --> K["Monorepo 包"];
+    A --> K["Web UI 系统"];
+    A --> L["Monorepo 包"];
 
     B --> B1["cli/__init__.py"];
+    B --> B2["cli/info.py"];
+    B --> B3["cli/web.py"];
+    B --> B4["cli/login.py"];
     C --> C1["app.py"];
     D --> D1["KimiSoul"];
     D --> D2["Agent 系统"];
@@ -66,6 +70,7 @@ graph TD
     F --> F1["Shell 界面"];
     F --> F2["Print 模式"];
     F --> F3["ACP 协议"];
+    F --> F4["Toad TUI"];
     H --> H1["OAuth 授权"];
     H --> H2["平台管理"];
     I --> I1["技能发现"];
@@ -74,10 +79,13 @@ graph TD
     J --> J1["Wire 服务器"];
     J --> J2["JSON-RPC"];
     J --> J3["文件后端"];
-    K --> K1["kaos 包"];
-    K --> K2["kosong 包"];
-    K --> K3["kimi-code 包"];
-    K --> K4["kimi-sdk 包"];
+    K --> K1["Web API"];
+    K --> K2["Web Runner"];
+    K --> K3["Sessions Store"];
+    L --> L1["kaos 包"];
+    L --> L2["kosong 包"];
+    L --> L3["kimi-code 包"];
+    L --> L4["kimi-sdk 包"];
 
     click D1 "./src/kimi_cli/soul/CLAUDE.md" "查看 Soul 模块文档"
     click D2 "./src/kimi_cli/agents/CLAUDE.md" "查看 Agent 配置文档"
@@ -93,19 +101,21 @@ graph TD
 | 模块 | 路径 | 职责 | 状态 |
 |------|------|------|------|
 | **主应用** | `src/kimi_cli/` | CLI 入口、应用生命周期、会话管理 | ✅ 完整 |
-| **CLI 命令** | `src/kimi_cli/cli/` | 模块化 CLI 子命令（info、mcp、term、acp、login、logout） | ✅ 完整 |
+| **CLI 命令** | `src/kimi_cli/cli/` | 模块化 CLI 子命令（info、mcp、term、acp、login、logout、web） | ✅ 完整 |
 | **Soul 引擎** | `src/kimi_cli/soul/` | AI 推理引擎、Agent 执行、消息处理 | ✅ 完整 |
 | **工具系统** | `src/kimi_cli/tools/` | 文件操作、Shell、Web、任务、待办、媒体读取等工具 | ✅ 完整 |
-| **用户界面** | `src/kimi_cli/ui/` | Shell、Print、ACP 等界面 | ✅ 完整 |
+| **用户界面** | `src/kimi_cli/ui/` | Shell、Print、ACP、Toad TUI 等界面 | ✅ 完整 |
 | **认证系统** | `src/kimi_cli/auth/` | OAuth 授权、平台管理、令牌刷新 (v1.0+) | ✅ 完整 |
 | **技能系统** | `src/kimi_cli/skill/` | 技能发现、Flow 解析（Mermaid/D2） | ✅ 完整 |
 | **Wire 协议** | `src/kimi_cli/wire/` | Wire 服务器、JSON-RPC、文件后端 | ✅ 完整 |
+| **Web UI 系统** | `src/kimi_cli/web/` | Web API、会话管理、消息处理 (v1.9.0+) | ✅ 完整 |
 | **Agent 配置** | `src/kimi_cli/agents/` | Agent 规范定义和加载 | ✅ 完整 |
 | **实用工具** | `src/kimi_cli/utils/` | 通用工具函数和助手 | ✅ 完整 |
 | **Kaos 包** | `packages/kaos/` | 文件系统和 shell 访问抽象层 | ✅ 完整 |
 | **Kosong 包** | `packages/kosong/` | LLM 抽象层 | ✅ 完整 |
 | **Kimi-code 包** | `packages/kimi-code/` | CLI 发行包 | ✅ 完整 |
 | **Kimi-sdk 包** | `sdks/kimi-sdk/` | Kimi API Python SDK | ✅ 完整 |
+| **Web 前端** | `web/` | React + TypeScript Web UI (v1.9.0+) | ✅ 完整 |
 
 ## 技术栈
 
@@ -174,6 +184,19 @@ graph TD
 - **aiohttp**: 异步 HTTP 客户端
 - **fastmcp**: MCP 协议实现
 
+### Web UI 技术栈 (v1.9.0+)
+
+- **前端框架**: React 18+ with TypeScript
+- **构建工具**: Vite 6+
+- **UI 组件**: Shadcn/ui (Radix UI + Tailwind CSS)
+- **状态管理**: Zustand
+- **代码高亮**: React Syntax Highlighter
+- **Diff 显示**: 自定义 Diff 组件
+- **API 客户端**: OpenAPI 生成的类型安全客户端
+- **实时通信**: WebSocket (via FastAPI WebSockets)
+- **后端框架**: FastAPI + Uvicorn
+- **API 文档**: Scalar (FastAPI 集成)
+
 ### 开发工具
 
 - **uv**: 现代包管理和构建工具（Monorepo workspace）
@@ -202,12 +225,14 @@ kimi --acp            # ACP 服务器模式
 kimi --wire           # Wire 协议模式
 kimi term             # Toad TUI 终端界面
 kimi info             # 显示版本和协议信息
+kimi web              # 启动 Web UI (v1.9.0+)
 
 # CLI 子命令
 kimi acp              # 运行 ACP 服务器
 kimi mcp              # 管理 MCP 配置
 kimi info             # 显示版本信息（支持 --json）
 kimi term             # 启动 Toad TUI
+kimi web              # 启动 Web UI 服务器 (v1.9.0+)
 kimi login            # Kimi 账户登录 (v1.0+)
 kimi logout           # Kimi 账户登出 (v1.0+)
 ```
@@ -447,11 +472,21 @@ make ai-test
 
 ### Web UI 全面增强 (v1.9.0+)
 
+**技术架构** (v1.9.0+):
+- **前端技术栈**: React 18+ + TypeScript + Vite
+- **UI 组件库**: Shadcn/ui (基于 Radix UI 和 Tailwind CSS)
+- **后端 API**: FastAPI + Uvicorn 服务器
+- **实时通信**: WebSocket 支持消息流传输
+- **API 文档**: Scalar 集成的交互式 API 文档
+- **代码生成**: OpenAPI 规范自动生成类型安全客户端
+
 **界面重构**:
 - **工具输入 UI 重设计** (v1.9.0): 全新工具输入界面，支持更好的交互体验
 - **媒体预览支持** (v1.9.0): 在 Web UI 中直接预览图片和视频文件
 - **消息渲染改进** (v1.9.0): 优化助手消息的显示效果和布局
 - **移动端适配** (v1.9.0): 提升移动端提示词输入的用户体验
+- **代码高亮** (v1.9.0): React Syntax Highlighter 集成
+- **Diff 显示** (v1.9.0): 内置代码差异对比组件
 
 **交互增强**:
 - **上下文使用量指示器** (v1.11.0): 在提示工具栏显示详细的 token 使用情况和配额
@@ -460,10 +495,14 @@ make ai-test
 - **统一提示工具栏** (v1.10.0): 消息队列和统一提示工具栏整合
 - **键盘快捷键** (v1.10.0): 审批对话框支持键盘快捷键操作
 - **活动状态指示器** (v1.5.0): 在聊天界面显示活动状态
+- **文件提及** (v1.9.0): 支持 @ 符号快速引用文件
+- **斜杠命令菜单** (v1.9.0): 交互式斜杠命令选择器
 
 **会话管理**:
 - **会话 ID 重载保护** (v1.8.0): 重载时保留会话 ID
 - **连接状态改进** (v1.4.0): 优化会话连接状态消息和错误处理
+- **会话持久化** (v1.9.0): 会话数据服务器端存储
+- **会话搜索** (v1.9.0): 全文搜索历史消息
 
 ### Wire 协议增强 (v1.8.0+)
 
@@ -561,10 +600,11 @@ make ai-test
 
 ### 代码规模
 
-- **总文件数**: 约 330+ 文件（Monorepo 架构）
-- **Python 文件**: 约 130+ 个（主项目 + 子包）
-- **测试文件**: 55+ 个测试模块
-- **文档文件**: 65+ 个 Markdown 文档
+- **总文件数**: 约 7700+ 文件（包含 web 前端代码）
+- **Python 文件**: 267 个（主项目 + 子包）
+- **TypeScript/TSX 文件**: 250+ 个（Web UI 前端）
+- **测试文件**: 65+ 个测试模块
+- **文档文件**: 7750+ 个 Markdown 文档（包括 node_modules 和依赖）
 
 ### Monorepo 包结构
 
@@ -588,10 +628,18 @@ make ai-test
 
 ### 依赖统计
 
+**Python 依赖**:
 - **核心依赖**: 28+ 主要包
 - **开发依赖**: 12+ 开发工具
 - **外部工具**: ripgrep, patch 等
 - **可选功能**: PIL, MCP 服务器, Toad TUI, keyring 等
+
+**Web 前端依赖**:
+- **核心框架**: React 18+, TypeScript
+- **UI 库**: Radix UI, Shadcn/ui, Tailwind CSS
+- **工具库**: Zustand, React Syntax Highlighter
+- **构建工具**: Vite 6+, TypeScript 5+
+- **开发工具**: Biome, ESLint, OpenAPI Generator
 
 ## 版本信息
 
