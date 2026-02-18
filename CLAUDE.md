@@ -71,6 +71,8 @@ graph TD
     F --> F2["Print 模式"];
     F --> F3["ACP 协议"];
     F --> F4["Toad TUI"];
+    F --> F5["Web UI"];
+    F --> F6["Wire 协议"];
     H --> H1["OAuth 授权"];
     H --> H2["平台管理"];
     I --> I1["技能发现"];
@@ -104,10 +106,11 @@ graph TD
 | **CLI 命令** | `src/kimi_cli/cli/` | 模块化 CLI 子命令（info、mcp、term、acp、login、logout、web） | ✅ 完整 |
 | **Soul 引擎** | `src/kimi_cli/soul/` | AI 推理引擎、Agent 执行、消息处理 | ✅ 完整 |
 | **工具系统** | `src/kimi_cli/tools/` | 文件操作、Shell、Web、任务、待办、媒体读取等工具 | ✅ 完整 |
-| **用户界面** | `src/kimi_cli/ui/` | Shell、Print、ACP、Toad TUI 等界面 | ✅ 完整 |
+| **用户界面** | `src/kimi_cli/ui/` | Shell、Print、ACP、Toad TUI、Web UI 等界面 | ✅ 完整 |
 | **认证系统** | `src/kimi_cli/auth/` | OAuth 授权、平台管理、令牌刷新 (v1.0+) | ✅ 完整 |
 | **技能系统** | `src/kimi_cli/skill/` | 技能发现、Flow 解析（Mermaid/D2） | ✅ 完整 |
 | **Wire 协议** | `src/kimi_cli/wire/` | Wire 服务器、JSON-RPC、文件后端 | ✅ 完整 |
+| **ACP 协议** | `src/kimi_cli/acp/` | Agent Client Protocol 实现 (v0.7.0+) | ✅ 完整 |
 | **Web UI 系统** | `src/kimi_cli/web/` | Web API、会话管理、消息处理 (v1.9.0+) | ✅ 完整 |
 | **Agent 配置** | `src/kimi_cli/agents/` | Agent 规范定义和加载 | ✅ 完整 |
 | **实用工具** | `src/kimi_cli/utils/` | 通用工具函数和助手 | ✅ 完整 |
@@ -169,6 +172,13 @@ graph TD
   - 基于 kosong 构建
 - **依赖**: kosong>=0.37.0
 
+### ACP 协议
+
+- **agent-client-protocol**: v0.7.0 - Agent Client Protocol 实现
+- **ACP Server**: ACP 服务器实现，支持 MCP 工具转换
+- **ACP Session**: 会话管理和状态追踪
+- **ACP Kaos**: Kaos 工具到 ACP 工具的转换
+
 ### UI 和渲染
 
 - **Rich**: 富文本终端渲染
@@ -186,12 +196,18 @@ graph TD
 
 ### Web UI 技术栈 (v1.9.0+)
 
-- **前端框架**: React 18+ with TypeScript
-- **构建工具**: Vite 6+
-- **UI 组件**: Shadcn/ui (Radix UI + Tailwind CSS)
-- **状态管理**: Zustand
-- **代码高亮**: React Syntax Highlighter
-- **Diff 显示**: 自定义 Diff 组件
+- **前端框架**: React 19.2.0 + TypeScript
+- **构建工具**: Vite 7.2.4
+- **UI 组件**: Shadcn/ui (Radix UI + Tailwind CSS 4.1.17)
+- **状态管理**: Zustand 5.0.9
+- **代码高亮**: Shiki 3.20.0 + React Syntax Highlighter
+- **Diff 显示**: diff + gitdiff-parser
+- **动画引擎**: Motion 12.23.24 + tw-animate-css 1.4.0
+- **流程图**: @xyflow/react 12.9.3
+- **AI SDK**: Vercel AI SDK (ai) 5.0.99
+- **流式响应**: streamdown 1.6.10
+- **虚拟列表**: react-virtuoso 4.17.0
+- **实时扫描**: react-scan 0.4.3 (性能优化)
 - **API 客户端**: OpenAPI 生成的类型安全客户端
 - **实时通信**: WebSocket (via FastAPI WebSockets)
 - **后端框架**: FastAPI + Uvicorn
@@ -470,6 +486,15 @@ make ai-test
 
 ## 最新功能亮点 (v1.12.0)
 
+### Web UI 全面增强 (v1.12.0)
+
+**v1.12.0 优化**:
+- **多项 UI 优化** (v1.12.0): 完善 Web UI 用户体验和交互细节
+- **Ctrl+C 优雅退出** (v1.12.0): 启用 Ctrl+C 优雅退出 Web 服务器
+- **端口复用** (v1.12.0): 设置 SO_REUSEADDR 检查端口可用性
+- **提示消息更新** (v1.12.0): 更新提示消息清晰度，移除未使用的 workDir 属性
+- **stderr 恢复** (v1.12.0): 修复 /web 命令切换到 Web 模式时 stderr 问题
+
 ### Web UI 全面增强 (v1.9.0+)
 
 **技术架构** (v1.9.0+):
@@ -629,21 +654,25 @@ make ai-test
 ### 依赖统计
 
 **Python 依赖**:
-- **核心依赖**: 28+ 主要包
-- **开发依赖**: 12+ 开发工具
+- **核心依赖**: 28+ 主要包 (typer, kosong, pydantic, rich, aiohttp, fastapi 等)
+- **开发依赖**: 12+ 开发工具 (pytest, ruff, pyright, PyInstaller 等)
 - **外部工具**: ripgrep, patch 等
 - **可选功能**: PIL, MCP 服务器, Toad TUI, keyring 等
 
 **Web 前端依赖**:
-- **核心框架**: React 18+, TypeScript
-- **UI 库**: Radix UI, Shadcn/ui, Tailwind CSS
-- **工具库**: Zustand, React Syntax Highlighter
-- **构建工具**: Vite 6+, TypeScript 5+
-- **开发工具**: Biome, ESLint, OpenAPI Generator
+- **核心框架**: React 19.2.0, TypeScript 5.9.3
+- **UI 库**: Radix UI 1.4.3, Shadcn/ui, Tailwind CSS 4.1.17
+- **状态管理**: Zustand 5.0.9
+- **代码高亮**: Shiki 3.20.0, refractor 5.0.0
+- **动画**: Motion 12.23.24, tw-animate-css 1.4.0
+- **构建工具**: Vite 7.2.4, Biome 2.3.8
+- **AI 集成**: Vercel AI SDK (ai) 5.0.99, streamdown 1.6.10
+- **开发工具**: OpenAPI Generator, rollup-plugin-visualizer
 
 ## 版本信息
 
 - **当前版本**: 1.12.0 (2026-02-14)
+- **文档更新**: 2026-02-18
 - **Python 要求**: 3.12+（推荐 3.14 以获得完整功能支持）
 - **发布状态**: 活跃开发中
 - **许可证**: 开源许可证
